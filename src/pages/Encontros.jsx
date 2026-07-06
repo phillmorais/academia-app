@@ -14,12 +14,26 @@ function formatarData(data) {
   return `${dia} de ${MESES[Number(mes) - 1]} de ${ano}`
 }
 
+function hojeISO() {
+  const agora = new Date()
+  const fuso = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
+  return fuso.toISOString().slice(0, 10)
+}
+
+function rotuloDestaque(data) {
+  if (!data) return 'PRÓXIMO ENCONTRO'
+  const hoje = hojeISO()
+  if (data === hoje) return 'ENCONTRO DE HOJE'
+  if (data > hoje) return 'PRÓXIMO ENCONTRO'
+  return 'ENCONTRO EM DESTAQUE'
+}
+
 function CardEncontro({ encontro, destaque }) {
   if (destaque) {
     return (
       <Link to={`/encontros/${encontro.id}`} className="block rounded-2xl bg-stone-900 p-6">
         <span className="inline-block text-amber-400 text-sm font-semibold tracking-wide mb-3">
-          ENCONTRO DE HOJE
+          {rotuloDestaque(encontro.data)}
         </span>
         <div className="flex items-baseline justify-between gap-3 mb-1">
           <span className="text-stone-400 text-base">Encontro {encontro.numero}</span>
