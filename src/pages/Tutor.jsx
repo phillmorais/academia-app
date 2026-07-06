@@ -89,14 +89,15 @@ export default function Tutor() {
         }),
       })
 
+      const dados = await resposta.json()
+
       if (!resposta.ok) {
-        throw new Error('falha na resposta')
+        throw new Error(dados.depuracao ? `${dados.erro} [${dados.depuracao}]` : dados.erro)
       }
 
-      const dados = await resposta.json()
       setMensagens((atual) => [...atual, { papel: 'tutor', texto: dados.resposta }])
-    } catch {
-      setErro('O Tutor não respondeu agora. Tente novamente em instantes.')
+    } catch (e) {
+      setErro(e.message || 'O Tutor não respondeu agora. Tente novamente em instantes.')
     } finally {
       setEnviando(false)
     }
