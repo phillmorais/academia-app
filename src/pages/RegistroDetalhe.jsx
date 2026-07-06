@@ -86,7 +86,7 @@ export default function RegistroDetalhe() {
             <button
               onClick={salvar}
               disabled={salvando}
-              className="flex-1 bg-amber-800 text-white rounded-xl py-3.5 font-semibold active:bg-amber-900 disabled:opacity-60"
+              className="flex-1 bg-stone-900 text-white rounded-xl py-3.5 font-semibold active:bg-stone-800 disabled:opacity-60"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>

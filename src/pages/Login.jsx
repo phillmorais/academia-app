@@ -83,7 +83,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={enviando}
-              className="w-full text-lg font-semibold bg-amber-800 text-white py-3.5 rounded-xl active:bg-amber-900 disabled:opacity-60 transition-colors"
+              className="w-full text-lg font-semibold bg-stone-900 text-white py-3.5 rounded-xl active:bg-stone-800 disabled:opacity-60 transition-colors"
             >
               {enviando ? 'Entrando...' : 'Entrar'}
             </button>
@@ -125,7 +125,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={enviando}
-              className="w-full text-lg font-semibold bg-amber-800 text-white py-3.5 rounded-xl active:bg-amber-900 disabled:opacity-60 transition-colors"
+              className="w-full text-lg font-semibold bg-stone-900 text-white py-3.5 rounded-xl active:bg-stone-800 disabled:opacity-60 transition-colors"
             >
               {enviando ? 'Enviando...' : 'Enviar e-mail'}
             </button>

@@ -1,28 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-
-const MODOS = [
-  {
-    chave: 'explicar',
-    titulo: 'Me explique com calma',
-    descricao: 'Peça para entender melhor um conceito do livro ou do tema do mês.',
-  },
-  {
-    chave: 'perguntar',
-    titulo: 'Me faça perguntas',
-    descricao: 'O Tutor faz perguntas, uma de cada vez, para você refletir sobre o problema do mês.',
-  },
-  {
-    chave: 'criticar',
-    titulo: 'Critique meu raciocínio',
-    descricao: 'Escreva uma ideia sua e receba contrapontos para fortalecer o pensamento.',
-  },
-]
+import { useAuth } from '../context/AuthContext'
+import { MODOS, rotuloModo } from '../lib/tutorModos'
 
 function TelaEscolha({ aoEscolher }) {
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-semibold text-stone-800 mb-1 px-1">Tutor</h1>
+      <div className="flex items-center justify-between mb-6 px-1">
+        <h1 className="text-2xl font-semibold text-stone-900 tracking-tight">Tutor</h1>
+        <Link to="/tutor/historico" className="text-amber-800 font-medium">
+          Conversas anteriores
+        </Link>
+      </div>
       <p className="text-stone-500 mb-6 px-1">O que você quer fazer agora?</p>
       <div className="flex flex-col gap-4">
         {MODOS.map((modo) => (
@@ -41,8 +31,11 @@ function TelaEscolha({ aoEscolher }) {
 }
 
 export default function Tutor() {
+  const { usuario } = useAuth()
   const [encontroAtual, setEncontroAtual] = useState(null)
   const [modo, setModo] = useState(null)
+  const [conversaId, setConversaId] = useState(null)
+  const [compartilhada, setCompartilhada] = useState(false)
   const [mensagens, setMensagens] = useState([])
   const [entrada, setEntrada] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -62,7 +55,12 @@ export default function Tutor() {
     fimDaLista.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensagens])
 
-  async function enviarParaTutor(modoEscolhido, historico) {
+  async function salvarMensagem(idConversa, papel, texto) {
+    if (!idConversa) return
+    await supabase.from('tutor_mensagens').insert({ conversa_id: idConversa, papel, texto })
+  }
+
+  async function enviarParaTutor(modoEscolhido, historico, idConversa) {
     setEnviando(true)
     setErro('')
     try {
@@ -79,6 +77,7 @@ export default function Tutor() {
         body: JSON.stringify({
           modo: modoEscolhido,
           mensagens: historico,
+          encontroId: encontroAtual?.id ?? null,
           contexto: encontroAtual
             ? {
                 livro: encontroAtual.livro,
@@ -96,6 +95,7 @@ export default function Tutor() {
       }
 
       setMensagens((atual) => [...atual, { papel: 'tutor', texto: dados.resposta }])
+      await salvarMensagem(idConversa, 'tutor', dados.resposta)
     } catch (e) {
       setErro(e.message || 'O Tutor não respondeu agora. Tente novamente em instantes.')
     } finally {
@@ -103,15 +103,28 @@ export default function Tutor() {
     }
   }
 
-  function escolherModo(chave) {
+  async function escolherModo(chave) {
     setModo(chave)
     setMensagens([])
     setErro('')
+    setCompartilhada(false)
+
+    const { data: conversa } = await supabase
+      .from('tutor_conversas')
+      .insert({
+        usuario_id: usuario.id,
+        encontro_id: encontroAtual?.id ?? null,
+        modo: chave,
+      })
+      .select()
+      .single()
+
+    setConversaId(conversa?.id ?? null)
 
     if (chave === 'perguntar') {
       const primeira = { papel: 'usuario', texto: 'Podemos começar.' }
       setMensagens([primeira])
-      enviarParaTutor(chave, [primeira])
+      enviarParaTutor(chave, [primeira], conversa?.id)
     }
   }
 
@@ -123,29 +136,47 @@ export default function Tutor() {
     const historico = [...mensagens, nova]
     setMensagens(historico)
     setEntrada('')
-    await enviarParaTutor(modo, historico)
+    await salvarMensagem(conversaId, 'usuario', nova.texto)
+    await enviarParaTutor(modo, historico, conversaId)
+  }
+
+  async function alternarCompartilhamento() {
+    const novoValor = !compartilhada
+    setCompartilhada(novoValor)
+    if (conversaId) {
+      await supabase.from('tutor_conversas').update({ compartilhada: novoValor }).eq('id', conversaId)
+    }
   }
 
   function trocarDeModo() {
     setModo(null)
     setMensagens([])
     setErro('')
+    setConversaId(null)
+    setCompartilhada(false)
   }
 
   if (!modo) {
     return <TelaEscolha aoEscolher={escolherModo} />
   }
 
-  const modoAtual = MODOS.find((m) => m.chave === modo)
   const aguardandoPrimeiraEntrada = modo !== 'perguntar' && mensagens.length === 0
 
   return (
     <div className="flex flex-col h-[calc(100dvh-6rem)] max-w-2xl mx-auto">
-      <div className="px-4 pt-6 pb-3 flex items-center justify-between border-b border-stone-200">
-        <h1 className="text-xl font-semibold text-stone-800">{modoAtual.titulo}</h1>
-        <button onClick={trocarDeModo} className="text-amber-800 font-medium">
-          Trocar
-        </button>
+      <div className="px-4 pt-6 pb-3 border-b border-stone-200">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-xl font-semibold text-stone-900">{rotuloModo(modo)}</h1>
+          <button onClick={trocarDeModo} className="text-amber-800 font-medium">
+            Trocar
+          </button>
+        </div>
+        {mensagens.length > 0 && (
+          <label className="flex items-center gap-2 text-sm text-stone-500">
+            <input type="checkbox" checked={compartilhada} onChange={alternarCompartilhamento} />
+            Compartilhar esta conversa com o grupo
+          </label>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
@@ -164,7 +195,7 @@ export default function Tutor() {
               key={i}
               className={`max-w-[85%] rounded-2xl px-4 py-3 leading-relaxed ${
                 m.papel === 'usuario'
-                  ? 'self-end bg-amber-800 text-white'
+                  ? 'self-end bg-stone-900 text-white'
                   : 'self-start bg-white border border-stone-200 text-stone-700'
               }`}
             >
@@ -187,7 +218,7 @@ export default function Tutor() {
         <button
           type="submit"
           disabled={enviando || !entrada.trim()}
-          className="bg-amber-800 text-white px-5 rounded-xl font-semibold disabled:opacity-50"
+          className="bg-stone-900 text-white px-5 rounded-xl font-semibold disabled:opacity-50"
         >
           Enviar
         </button>

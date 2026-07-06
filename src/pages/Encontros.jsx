@@ -14,29 +14,39 @@ function formatarData(data) {
 }
 
 function CardEncontro({ encontro, destaque }) {
+  if (destaque) {
+    return (
+      <Link to={`/encontros/${encontro.id}`} className="block rounded-2xl bg-stone-900 p-6">
+        <span className="inline-block text-amber-400 text-sm font-semibold tracking-wide mb-3">
+          ENCONTRO DE HOJE
+        </span>
+        <div className="flex items-baseline justify-between gap-3 mb-1">
+          <span className="text-stone-400 text-base">Encontro {encontro.numero}</span>
+          {encontro.data && (
+            <span className="text-stone-400 text-base">{formatarData(encontro.data)}</span>
+          )}
+        </div>
+        <h2 className="font-semibold text-white text-2xl tracking-tight mb-1">{encontro.livro}</h2>
+        {encontro.autor && <p className="text-stone-400 mb-3">{encontro.autor}</p>}
+        {encontro.problema_governanca && (
+          <p className="text-stone-200 leading-snug">{encontro.problema_governanca}</p>
+        )}
+      </Link>
+    )
+  }
+
   return (
     <Link
       to={`/encontros/${encontro.id}`}
-      className={`block rounded-2xl border transition-colors ${
-        destaque
-          ? 'border-amber-700 bg-amber-50 p-6'
-          : 'border-stone-200 bg-white p-5 active:bg-stone-50'
-      }`}
+      className="block rounded-2xl border border-stone-200 bg-white p-5 active:bg-stone-50"
     >
-      {destaque && (
-        <span className="inline-block bg-amber-800 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3">
-          Encontro de hoje
-        </span>
-      )}
       <div className="flex items-baseline justify-between gap-3 mb-1">
         <span className="text-stone-500 text-base">Encontro {encontro.numero}</span>
         {encontro.data && (
           <span className="text-stone-500 text-base">{formatarData(encontro.data)}</span>
         )}
       </div>
-      <h2 className={`font-semibold text-stone-800 ${destaque ? 'text-2xl' : 'text-xl'} mb-1`}>
-        {encontro.livro}
-      </h2>
+      <h2 className="font-semibold text-stone-800 text-xl mb-1">{encontro.livro}</h2>
       {encontro.autor && <p className="text-stone-500 mb-3">{encontro.autor}</p>}
       {encontro.problema_governanca && (
         <p className="text-stone-600 leading-snug">{encontro.problema_governanca}</p>
@@ -73,7 +83,9 @@ export default function Encontros() {
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-semibold text-stone-800 mb-5 px-1">Encontros da Academia</h1>
+      <h1 className="text-2xl font-semibold text-stone-900 tracking-tight mb-5 px-1">
+        Encontros da Academia
+      </h1>
       <div className="flex flex-col gap-4">
         {atual && <CardEncontro encontro={atual} destaque />}
         {restante.map((encontro) => (

@@ -51,6 +51,24 @@ create table tutor_uso (
   primary key (usuario_id, dia)
 );
 
+-- Histórico de conversas do Tutor — pessoal por padrão, compartilhável com o grupo
+create table tutor_conversas (
+  id uuid primary key default gen_random_uuid(),
+  usuario_id uuid not null references perfis(id) on delete cascade,
+  encontro_id uuid references encontros(id) on delete set null,
+  modo text not null, -- 'explicar' | 'perguntar' | 'criticar'
+  compartilhada boolean not null default false,
+  criado_em timestamptz default now()
+);
+
+create table tutor_mensagens (
+  id uuid primary key default gen_random_uuid(),
+  conversa_id uuid not null references tutor_conversas(id) on delete cascade,
+  papel text not null, -- 'usuario' | 'tutor'
+  texto text not null,
+  criado_em timestamptz default now()
+);
+
 -- ============================================================
 -- CRIA AUTOMATICAMENTE UM PERFIL QUANDO UMA CONTA É CRIADA
 -- ============================================================
@@ -80,6 +98,8 @@ alter table encontros enable row level security;
 alter table prompts enable row level security;
 alter table registros enable row level security;
 alter table tutor_uso enable row level security;
+alter table tutor_conversas enable row level security;
+alter table tutor_mensagens enable row level security;
 
 -- perfis: todo autenticado pode ler nomes; cada um só edita o próprio perfil
 create policy "perfis_select_autenticados" on perfis
@@ -126,6 +146,40 @@ create policy "tutor_uso_proprio_insert" on tutor_uso
 
 create policy "tutor_uso_proprio_update" on tutor_uso
   for update to authenticated using (usuario_id = auth.uid());
+
+-- tutor_conversas: cada um vê as próprias + as que outros marcaram como compartilhadas
+create policy "tutor_conversas_select" on tutor_conversas
+  for select to authenticated
+  using (usuario_id = auth.uid() or compartilhada = true);
+
+create policy "tutor_conversas_insert" on tutor_conversas
+  for insert to authenticated
+  with check (usuario_id = auth.uid());
+
+create policy "tutor_conversas_update_propria" on tutor_conversas
+  for update to authenticated
+  using (usuario_id = auth.uid());
+
+-- tutor_mensagens: segue a mesma visibilidade da conversa a que pertencem
+create policy "tutor_mensagens_select" on tutor_mensagens
+  for select to authenticated
+  using (
+    exists (
+      select 1 from tutor_conversas c
+      where c.id = tutor_mensagens.conversa_id
+        and (c.usuario_id = auth.uid() or c.compartilhada = true)
+    )
+  );
+
+create policy "tutor_mensagens_insert" on tutor_mensagens
+  for insert to authenticated
+  with check (
+    exists (
+      select 1 from tutor_conversas c
+      where c.id = tutor_mensagens.conversa_id
+        and c.usuario_id = auth.uid()
+    )
+  );
 
 -- ============================================================
 -- CONTEÚDO SEMENTE — ENCONTROS

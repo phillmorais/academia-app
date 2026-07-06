@@ -39,7 +39,7 @@ function CardPrompt({ prompt }) {
       <button
         onClick={copiar}
         className={`w-full text-center rounded-xl py-3 font-semibold transition-colors ${
-          copiado ? 'bg-green-700 text-white' : 'bg-amber-800 text-white active:bg-amber-900'
+          copiado ? 'bg-green-700 text-white' : 'bg-stone-900 text-white active:bg-stone-800'
         }`}
       >
         {copiado ? 'Copiado!' : 'Copiar'}

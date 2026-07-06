@@ -13,10 +13,53 @@ const INSTRUCOES_POR_MODO = {
     '- Se for "criticar": a pessoa apresentará um raciocínio. Aponte com cuidado as premissas implícitas, os possíveis vieses e um ou dois contrapontos fundamentados. Não humilhe; ajude a fortalecer o pensamento.',
 }
 
-function montarSystemPrompt(modo, contexto) {
+const MAXIMO_CONVERSAS_GRUPO = 3
+const MAXIMO_MENSAGENS_POR_CONVERSA_GRUPO = 4
+const TAMANHO_MAXIMO_BLOCO_GRUPO = 2000
+
+async function buscarContribuicoesGrupo(supabase, encontroId, usuarioId) {
+  if (!encontroId) return ''
+
+  const { data: conversas } = await supabase
+    .from('tutor_conversas')
+    .select('id, modo, perfis(nome)')
+    .eq('compartilhada', true)
+    .eq('encontro_id', encontroId)
+    .neq('usuario_id', usuarioId)
+    .order('criado_em', { ascending: false })
+    .limit(MAXIMO_CONVERSAS_GRUPO)
+
+  if (!conversas || conversas.length === 0) return ''
+
+  const blocos = []
+  for (const conversa of conversas) {
+    const { data: mensagens } = await supabase
+      .from('tutor_mensagens')
+      .select('papel, texto')
+      .eq('conversa_id', conversa.id)
+      .order('criado_em', { ascending: true })
+      .limit(MAXIMO_MENSAGENS_POR_CONVERSA_GRUPO)
+
+    if (!mensagens || mensagens.length === 0) continue
+
+    const nome = conversa.perfis?.nome || 'alguém do grupo'
+    const linhas = mensagens
+      .map((m) => `  ${m.papel === 'usuario' ? nome : 'Tutor'}: ${m.texto}`)
+      .join('\n')
+    blocos.push(`- Conversa de ${nome} (modo "${conversa.modo}"):\n${linhas}`)
+  }
+
+  return blocos.join('\n\n').slice(0, TAMANHO_MAXIMO_BLOCO_GRUPO)
+}
+
+function montarSystemPrompt(modo, contexto, contribuicoesGrupo) {
   const livro = contexto?.livro || 'não definido ainda'
   const autor = contexto?.autor || 'não definido ainda'
   const problema = contexto?.problema || 'não definido ainda'
+
+  const secaoGrupo = contribuicoesGrupo
+    ? `\nReflexões que outras pessoas do grupo compartilharam sobre este mesmo encontro (use apenas como pano de fundo para enriquecer sua resposta quando fizer sentido; não cite nomes de forma indiscreta, prefira algo como "outra pessoa do grupo refletiu que..."):\n\n${contribuicoesGrupo}\n`
+    : ''
 
   return `Você é o Tutor da Academia — um espaço de estudo entre pessoas próximas, com o objetivo de aprender a usar a Inteligência Artificial como parceira intelectual na governança e na tomada de decisões em Conselhos de Administração.
 
@@ -32,7 +75,7 @@ O encontro atual da Academia é sobre:
 - Livro: ${livro}
 - Autor: ${autor}
 - Problema de governança em pauta: ${problema}
-
+${secaoGrupo}
 Modo desta interação: ${modo}
 ${INSTRUCOES_POR_MODO[modo] || ''}
 
@@ -76,7 +119,7 @@ export default async function handler(req, res) {
     return
   }
 
-  const { modo, mensagens, contexto } = req.body || {}
+  const { modo, mensagens, contexto, encontroId } = req.body || {}
 
   if (!modo || !INSTRUCOES_POR_MODO[modo]) {
     res.status(400).json({ erro: 'Modo inválido.' })
@@ -109,7 +152,8 @@ export default async function handler(req, res) {
     return
   }
 
-  const systemPrompt = montarSystemPrompt(modo, contexto)
+  const contribuicoesGrupo = await buscarContribuicoesGrupo(supabase, encontroId, user.id)
+  const systemPrompt = montarSystemPrompt(modo, contexto, contribuicoesGrupo)
   const mensagensParaClaude = mensagens.map((m) => ({
     role: m.papel === 'usuario' ? 'user' : 'assistant',
     content: m.texto,

@@ -30,18 +30,18 @@ export default function EncontroDetalhe() {
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
-      <Link to="/" className="text-amber-800 font-medium mb-4 inline-block">
+      <Link to="/encontros" className="text-amber-800 font-medium mb-4 inline-block">
         ← Voltar aos encontros
       </Link>
 
       <p className="text-stone-500 mb-1">Encontro {encontro.numero}</p>
-      <h1 className="text-3xl font-semibold text-stone-800 mb-1">{encontro.livro}</h1>
+      <h1 className="text-3xl font-semibold text-stone-900 tracking-tight mb-1">{encontro.livro}</h1>
       {encontro.autor && <p className="text-stone-500 text-lg mb-4">{encontro.autor}</p>}
 
       {encontro.problema_governanca && (
-        <div className="bg-amber-50 border border-amber-700/30 rounded-2xl p-5 mb-6">
-          <p className="text-amber-900 font-semibold mb-1">O problema em pauta</p>
-          <p className="text-stone-700 text-lg leading-relaxed">{encontro.problema_governanca}</p>
+        <div className="bg-stone-900 rounded-2xl p-6 mb-6">
+          <p className="text-amber-400 font-semibold mb-2 tracking-wide">O problema em pauta</p>
+          <p className="text-stone-100 text-lg leading-relaxed">{encontro.problema_governanca}</p>
         </div>
       )}
 
@@ -60,7 +60,7 @@ export default function EncontroDetalhe() {
         </Link>
         <Link
           to="/tutor"
-          className="text-center bg-amber-800 rounded-xl py-3.5 font-semibold text-white active:bg-amber-900"
+          className="text-center bg-stone-900 rounded-xl py-3.5 font-semibold text-white active:bg-stone-800"
         >
           Abrir o Tutor
         </Link>

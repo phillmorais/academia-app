@@ -19,7 +19,8 @@ O Tutor (`/api/tutor.js`) só funciona rodando via `vercel dev` (ele lê as vari
 
 1. Crie uma conta e um projeto em [supabase.com](https://supabase.com).
 2. Vá em **SQL Editor**, cole o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e rode. Isso cria as tabelas, as políticas de segurança (RLS) e o conteúdo semente (os 6 primeiros encontros e 5 prompts).
-3. Em **Project Settings > API**, copie a **Project URL** e a **anon public key**. Você vai usar os dois valores duas vezes: nas variáveis `VITE_SUPABASE_*` (frontend) e `SUPABASE_*` (servidor, na Vercel).
+3. Se o projeto já existia antes da tela de histórico do Tutor, rode também [`supabase/migration_002_historico_tutor.sql`](supabase/migration_002_historico_tutor.sql) — cria as tabelas `tutor_conversas` e `tutor_mensagens` (projetos novos já recebem isso direto do `schema.sql`).
+4. Em **Project Settings > API**, copie a **Project URL** e a **anon public key** (também chamada de "Publishable key" em painéis mais novos). Você vai usar os dois valores duas vezes: nas variáveis `VITE_SUPABASE_*` (frontend) e `SUPABASE_*` (servidor, na Vercel).
 
 ### 2. Criar as 10 contas dos participantes
 
@@ -45,12 +46,16 @@ Na tabela `encontros` (Table Editor do Supabase), o encontro com `status = 'atua
 
 ## Estrutura
 
-- `src/pages` — as telas (Login, Encontros, Detalhe do Encontro, Prompts, Registro, Tutor)
+- `src/pages` — as telas (Login, Início, Encontros, Detalhe do Encontro, Prompts, Registro, Tutor e histórico do Tutor)
 - `src/context/AuthContext.jsx` — sessão e perfil do usuário
 - `src/lib/supabaseClient.js` — cliente Supabase do frontend
 - `api/tutor.js` — única parte do sistema que fala com a API do Claude; valida a sessão do Supabase antes de responder
 - `supabase/schema.sql` — tabelas, RLS e conteúdo semente
 
+## Conversas do Tutor
+
+As conversas com o Tutor ficam salvas em `tutor_conversas` e `tutor_mensagens`, por padrão visíveis só para quem conversou. A pessoa pode marcar uma conversa como "compartilhar com o grupo" (campo `compartilhada`); a partir daí, ela aparece na aba "Do grupo" do histórico do Tutor para todo mundo, e o próprio Tutor passa a poder citar essas reflexões (sem citar nomes de forma indiscreta) quando conversa com outra pessoa sobre o mesmo encontro.
+
 ## Fora do escopo desta versão
 
-Transcrição/upload de áudio, destilação automática do registro, notificações, analytics, colaboração em tempo real e histórico persistente do Tutor. O fluxo de registro é manual: grave o encontro, destile a transcrição em qualquer IA usando o prompt de destilação (fornecido à parte) e cole o resultado na tela Registro.
+Transcrição/upload de áudio, destilação automática do registro, notificações e analytics. O fluxo de registro é manual: grave o encontro, destile a transcrição em qualquer IA usando o prompt de destilação (fornecido à parte) e cole o resultado na tela Registro.
