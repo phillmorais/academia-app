@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { MODOS, rotuloModo } from '../lib/tutorModos'
+import MensagemMarkdown from '../components/MensagemMarkdown'
 
 function TelaEscolha({ aoEscolher }) {
   return (
@@ -199,7 +200,7 @@ export default function Tutor() {
                   : 'self-start bg-white border border-stone-200 text-stone-700'
               }`}
             >
-              {m.texto}
+              {m.papel === 'tutor' ? <MensagemMarkdown>{m.texto}</MensagemMarkdown> : m.texto}
             </div>
           ))}
 

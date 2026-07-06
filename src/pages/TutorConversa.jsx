@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { rotuloModo } from '../lib/tutorModos'
+import MensagemMarkdown from '../components/MensagemMarkdown'
 
 export default function TutorConversa() {
   const { id } = useParams()
@@ -55,7 +56,7 @@ export default function TutorConversa() {
                 : 'self-start bg-white border border-stone-200 text-stone-700'
             }`}
           >
-            {m.texto}
+            {m.papel === 'tutor' ? <MensagemMarkdown>{m.texto}</MensagemMarkdown> : m.texto}
           </div>
         ))}
       </div>
