@@ -142,7 +142,7 @@ export default async function handler(req, res) {
     }
 
     const dados = await respostaClaude.json()
-    const texto = dados.content?.[0]?.text
+    const texto = dados.content?.find((bloco) => bloco.type === 'text')?.text
 
     if (!texto) {
       console.error('Resposta da API do Claude sem texto:', JSON.stringify(dados))
