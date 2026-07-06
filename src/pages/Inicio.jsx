@@ -42,6 +42,7 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
   const [livro, setLivro] = useState(encontro.livro || '')
   const [autor, setAutor] = useState(encontro.autor || '')
   const [problema, setProblema] = useState(encontro.problema_governanca || '')
+  const [conceitosChave, setConceitosChave] = useState(encontro.conceitos_chave || '')
   const [salvando, setSalvando] = useState(false)
 
   async function salvar(e) {
@@ -49,7 +50,13 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
     setSalvando(true)
     const { data: atualizado, error } = await supabase
       .from('encontros')
-      .update({ data: data || null, livro, autor, problema_governanca: problema })
+      .update({
+        data: data || null,
+        livro,
+        autor,
+        problema_governanca: problema,
+        conceitos_chave: conceitosChave || null,
+      })
       .eq('id', encontro.id)
       .select()
       .single()
@@ -89,6 +96,17 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
         <textarea
           value={problema}
           onChange={(e) => setProblema(e.target.value)}
+          rows={4}
+          className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+        />
+      </div>
+      <div>
+        <label className="block text-stone-700 mb-2 font-medium">
+          Conceitos-chave <span className="text-stone-400 font-normal">(um por linha — viram sugestões no Tutor)</span>
+        </label>
+        <textarea
+          value={conceitosChave}
+          onChange={(e) => setConceitosChave(e.target.value)}
           rows={4}
           className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
         />

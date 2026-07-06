@@ -21,6 +21,7 @@ create table encontros (
   autor text,
   problema_governanca text,
   roteiro text,
+  conceitos_chave text, -- um conceito por linha, usado como sugestão no Tutor
   status text not null default 'proximo', -- 'proximo' | 'atual' | 'concluido'
   criado_em timestamptz default now()
 );

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { MODOS, rotuloModo } from '../lib/tutorModos'
 import MensagemMarkdown from '../components/MensagemMarkdown'
+import BotaoCopiar from '../components/BotaoCopiar'
 
 function TelaEscolha({ aoEscolher }) {
   return (
@@ -33,6 +34,8 @@ function TelaEscolha({ aoEscolher }) {
 
 export default function Tutor() {
   const { usuario } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [encontroAtual, setEncontroAtual] = useState(null)
   const [modo, setModo] = useState(null)
   const [conversaId, setConversaId] = useState(null)
@@ -44,12 +47,44 @@ export default function Tutor() {
   const fimDaLista = useRef(null)
 
   useEffect(() => {
-    supabase
-      .from('encontros')
-      .select('*')
-      .eq('status', 'atual')
-      .maybeSingle()
-      .then(({ data }) => setEncontroAtual(data))
+    ;(async () => {
+      const continuarId = searchParams.get('continuar')
+
+      if (continuarId) {
+        const [{ data: conversa }, { data: msgs }] = await Promise.all([
+          supabase.from('tutor_conversas').select('*').eq('id', continuarId).single(),
+          supabase
+            .from('tutor_mensagens')
+            .select('*')
+            .eq('conversa_id', continuarId)
+            .order('criado_em', { ascending: true }),
+        ])
+
+        if (conversa) {
+          let encontro = null
+          if (conversa.encontro_id) {
+            const resp = await supabase.from('encontros').select('*').eq('id', conversa.encontro_id).single()
+            encontro = resp.data
+          }
+          setEncontroAtual(encontro)
+          setModo(conversa.modo)
+          setConversaId(conversa.id)
+          setCompartilhada(conversa.compartilhada)
+          setMensagens((msgs || []).map((m) => ({ papel: m.papel, texto: m.texto })))
+        }
+        return
+      }
+
+      const { data: atual } = await supabase.from('encontros').select('*').eq('status', 'atual').maybeSingle()
+      setEncontroAtual(atual)
+
+      const modoDeepLink = searchParams.get('modo')
+      const conceitoDeepLink = searchParams.get('conceito')
+      if (modoDeepLink && MODOS.some((m) => m.chave === modoDeepLink)) {
+        iniciarConversa(modoDeepLink, atual, conceitoDeepLink || undefined)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -61,7 +96,7 @@ export default function Tutor() {
     await supabase.from('tutor_mensagens').insert({ conversa_id: idConversa, papel, texto })
   }
 
-  async function enviarParaTutor(modoEscolhido, historico, idConversa) {
+  async function enviarParaTutor(modoEscolhido, historico, idConversa, encontroParaContexto) {
     setEnviando(true)
     setErro('')
     try {
@@ -78,12 +113,12 @@ export default function Tutor() {
         body: JSON.stringify({
           modo: modoEscolhido,
           mensagens: historico,
-          encontroId: encontroAtual?.id ?? null,
-          contexto: encontroAtual
+          encontroId: encontroParaContexto?.id ?? null,
+          contexto: encontroParaContexto
             ? {
-                livro: encontroAtual.livro,
-                autor: encontroAtual.autor,
-                problema: encontroAtual.problema_governanca,
+                livro: encontroParaContexto.livro,
+                autor: encontroParaContexto.autor,
+                problema: encontroParaContexto.problema_governanca,
               }
             : null,
         }),
@@ -104,7 +139,20 @@ export default function Tutor() {
     }
   }
 
-  async function escolherModo(chave) {
+  async function enviarTexto(texto, opcoes = {}) {
+    const modoUsado = opcoes.modoUsado ?? modo
+    const idConversaUsada = 'idConversaUsada' in opcoes ? opcoes.idConversaUsada : conversaId
+    const encontroUsado = 'encontroUsado' in opcoes ? opcoes.encontroUsado : encontroAtual
+    const baseHistorico = opcoes.baseHistorico ?? mensagens
+
+    const nova = { papel: 'usuario', texto }
+    const historico = [...baseHistorico, nova]
+    setMensagens(historico)
+    await salvarMensagem(idConversaUsada, 'usuario', nova.texto)
+    await enviarParaTutor(modoUsado, historico, idConversaUsada, encontroUsado)
+  }
+
+  async function iniciarConversa(chave, encontroParaContexto, mensagemInicial) {
     setModo(chave)
     setMensagens([])
     setErro('')
@@ -114,7 +162,7 @@ export default function Tutor() {
       .from('tutor_conversas')
       .insert({
         usuario_id: usuario.id,
-        encontro_id: encontroAtual?.id ?? null,
+        encontro_id: encontroParaContexto?.id ?? null,
         modo: chave,
       })
       .select()
@@ -125,20 +173,31 @@ export default function Tutor() {
     if (chave === 'perguntar') {
       const primeira = { papel: 'usuario', texto: 'Podemos começar.' }
       setMensagens([primeira])
-      enviarParaTutor(chave, [primeira], conversa?.id)
+      enviarParaTutor(chave, [primeira], conversa?.id, encontroParaContexto)
+    } else if (mensagemInicial) {
+      enviarTexto(mensagemInicial, {
+        modoUsado: chave,
+        idConversaUsada: conversa?.id,
+        encontroUsado: encontroParaContexto,
+        baseHistorico: [],
+      })
     }
+  }
+
+  function escolherModo(chave) {
+    iniciarConversa(chave, encontroAtual)
+  }
+
+  function escolherConceito(conceito) {
+    enviarTexto(conceito)
   }
 
   async function enviarMensagem(e) {
     e.preventDefault()
     if (!entrada.trim() || enviando) return
-
-    const nova = { papel: 'usuario', texto: entrada.trim() }
-    const historico = [...mensagens, nova]
-    setMensagens(historico)
+    const texto = entrada.trim()
     setEntrada('')
-    await salvarMensagem(conversaId, 'usuario', nova.texto)
-    await enviarParaTutor(modo, historico, conversaId)
+    await enviarTexto(texto)
   }
 
   async function alternarCompartilhamento() {
@@ -155,6 +214,13 @@ export default function Tutor() {
     setErro('')
     setConversaId(null)
     setCompartilhada(false)
+    navigate('/tutor', { replace: true })
+    supabase
+      .from('encontros')
+      .select('*')
+      .eq('status', 'atual')
+      .maybeSingle()
+      .then(({ data }) => setEncontroAtual(data))
   }
 
   if (!modo) {
@@ -162,6 +228,13 @@ export default function Tutor() {
   }
 
   const aguardandoPrimeiraEntrada = modo !== 'perguntar' && mensagens.length === 0
+  const conceitosSugeridos =
+    modo === 'explicar'
+      ? (encontroAtual?.conceitos_chave || '')
+          .split('\n')
+          .map((c) => c.trim())
+          .filter(Boolean)
+      : []
 
   return (
     <div className="flex flex-col h-[calc(100dvh-6rem)] max-w-2xl mx-auto">
@@ -182,11 +255,26 @@ export default function Tutor() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
         {aguardandoPrimeiraEntrada && (
-          <p className="text-stone-500 leading-relaxed">
-            {modo === 'explicar'
-              ? 'Escreva abaixo o conceito que você quer entender melhor.'
-              : 'Escreva abaixo a ideia ou o argumento que você quer colocar à prova.'}
-          </p>
+          <div>
+            <p className="text-stone-500 leading-relaxed mb-3">
+              {modo === 'explicar'
+                ? 'Escreva abaixo o conceito que você quer entender melhor.'
+                : 'Escreva abaixo a ideia ou o argumento que você quer colocar à prova.'}
+            </p>
+            {conceitosSugeridos.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {conceitosSugeridos.map((conceito) => (
+                  <button
+                    key={conceito}
+                    onClick={() => escolherConceito(conceito)}
+                    className="bg-white border border-stone-300 rounded-full px-4 py-2 text-stone-700 font-medium active:bg-stone-50"
+                  >
+                    {conceito}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {mensagens
@@ -201,6 +289,11 @@ export default function Tutor() {
               }`}
             >
               {m.papel === 'tutor' ? <MensagemMarkdown>{m.texto}</MensagemMarkdown> : m.texto}
+              {m.papel === 'tutor' && (
+                <div className="mt-2 pt-2 border-t border-stone-100">
+                  <BotaoCopiar texto={m.texto} className="text-amber-800" />
+                </div>
+              )}
             </div>
           ))}
 

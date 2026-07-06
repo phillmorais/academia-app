@@ -70,6 +70,13 @@ function CardPrompt({ prompt }) {
       >
         {copiado ? 'Copiado!' : 'Copiar'}
       </button>
+
+      <Link
+        to={`/tutor?modo=explicar&conceito=${encodeURIComponent(`O que significa este prompt: "${prompt.titulo}"?`)}`}
+        className="block text-center text-amber-800 font-medium mt-3"
+      >
+        Não entendeu? Pergunte ao Tutor
+      </Link>
     </div>
   )
 }

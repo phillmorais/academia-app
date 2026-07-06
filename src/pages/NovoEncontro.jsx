@@ -9,6 +9,7 @@ export default function NovoEncontro() {
   const [livro, setLivro] = useState('')
   const [autor, setAutor] = useState('')
   const [problema, setProblema] = useState('')
+  const [conceitosChave, setConceitosChave] = useState('')
   const [roteiro, setRoteiro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
@@ -37,6 +38,7 @@ export default function NovoEncontro() {
         livro,
         autor,
         problema_governanca: problema,
+        conceitos_chave: conceitosChave || null,
         roteiro: roteiro || null,
         status: 'proximo',
       })
@@ -106,6 +108,18 @@ export default function NovoEncontro() {
             value={problema}
             onChange={(e) => setProblema(e.target.value)}
             rows={4}
+            className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+          />
+        </div>
+        <div>
+          <label className="block text-stone-700 mb-2 font-medium">
+            Conceitos-chave <span className="text-stone-400 font-normal">(um por linha — viram sugestões no Tutor)</span>
+          </label>
+          <textarea
+            value={conceitosChave}
+            onChange={(e) => setConceitosChave(e.target.value)}
+            rows={4}
+            placeholder={'Fronteira irregular\nCointeligência\nAs quatro regras de Mollick'}
             className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
           />
         </div>

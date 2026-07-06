@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { rotuloModo } from '../lib/tutorModos'
 import MensagemMarkdown from '../components/MensagemMarkdown'
+import BotaoCopiar from '../components/BotaoCopiar'
 
 export default function TutorConversa() {
   const { id } = useParams()
@@ -57,10 +58,15 @@ export default function TutorConversa() {
       </p>
 
       {ehDono && (
-        <label className="flex items-center gap-2 text-sm text-stone-500 mb-6">
-          <input type="checkbox" checked={conversa.compartilhada} onChange={alternarCompartilhamento} />
-          Compartilhar esta conversa com o grupo
-        </label>
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <label className="flex items-center gap-2 text-sm text-stone-500">
+            <input type="checkbox" checked={conversa.compartilhada} onChange={alternarCompartilhamento} />
+            Compartilhar esta conversa com o grupo
+          </label>
+          <Link to={`/tutor?continuar=${conversa.id}`} className="text-amber-800 font-semibold text-sm shrink-0">
+            Continuar esta conversa
+          </Link>
+        </div>
       )}
 
       <div className="flex flex-col gap-4">
@@ -74,6 +80,11 @@ export default function TutorConversa() {
             }`}
           >
             {m.papel === 'tutor' ? <MensagemMarkdown>{m.texto}</MensagemMarkdown> : m.texto}
+            {m.papel === 'tutor' && (
+              <div className="mt-2 pt-2 border-t border-stone-100">
+                <BotaoCopiar texto={m.texto} className="text-amber-800" />
+              </div>
+            )}
           </div>
         ))}
       </div>
