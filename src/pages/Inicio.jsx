@@ -262,7 +262,7 @@ export default function Inicio() {
         </div>
         <p className="text-stone-500 leading-relaxed mt-3 px-1">
           Os prompts prontos da <Link to="/prompts" className="text-amber-800 font-semibold">Biblioteca</Link> já
-          seguem esse formato — é só copiar e adaptar.
+          trazem o papel pronto — complete com a situação, o formato e os limites na hora de usar.
         </p>
       </section>
 
