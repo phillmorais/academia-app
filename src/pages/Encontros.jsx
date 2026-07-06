@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../context/AuthContext'
 
 const MESES = [
   'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
@@ -56,8 +57,10 @@ function CardEncontro({ encontro, destaque }) {
 }
 
 export default function Encontros() {
+  const { perfil } = useAuth()
   const [encontros, setEncontros] = useState(null)
   const [erro, setErro] = useState('')
+  const ehOrganizadora = perfil?.papel === 'organizadora'
 
   useEffect(() => {
     supabase
@@ -83,9 +86,16 @@ export default function Encontros() {
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-semibold text-stone-900 tracking-tight mb-5 px-1">
-        Encontros da Academia
-      </h1>
+      <div className="flex items-center justify-between mb-5 px-1">
+        <h1 className="text-2xl font-semibold text-stone-900 tracking-tight">
+          Encontros da Academia
+        </h1>
+        {ehOrganizadora && (
+          <Link to="/encontros/novo" className="text-amber-800 font-semibold">
+            + Novo
+          </Link>
+        )}
+      </div>
       <div className="flex flex-col gap-4">
         {atual && <CardEncontro encontro={atual} destaque />}
         {restante.map((encontro) => (

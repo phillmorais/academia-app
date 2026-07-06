@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../context/AuthContext'
 import Markdown from '../components/Markdown'
 
 export default function EncontroDetalhe() {
   const { id } = useParams()
+  const { perfil } = useAuth()
   const [encontro, setEncontro] = useState(null)
   const [erro, setErro] = useState('')
+  const ehOrganizadora = perfil?.papel === 'organizadora'
 
   useEffect(() => {
     supabase
@@ -52,6 +55,14 @@ export default function EncontroDetalhe() {
         >
           Ver prompts deste encontro
         </Link>
+        {ehOrganizadora && (
+          <Link
+            to={`/encontros/${encontro.id}/gerar-prompts`}
+            className="text-center bg-white border border-stone-300 rounded-xl py-3.5 font-semibold text-stone-700 active:bg-stone-50"
+          >
+            Gerar sugestões de prompts com IA
+          </Link>
+        )}
         <Link
           to={`/registro/${encontro.id}`}
           className="text-center bg-white border border-stone-300 rounded-xl py-3.5 font-semibold text-stone-700 active:bg-stone-50"
