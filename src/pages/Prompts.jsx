@@ -2,6 +2,32 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 
+function GrupoPrompts({ titulo, lista }) {
+  const categorias = [...new Set(lista.map((p) => p.categoria))]
+
+  return (
+    <div className="flex flex-col gap-8">
+      {titulo && (
+        <h2 className="text-sm font-semibold text-stone-400 uppercase tracking-wide px-1 -mb-4">
+          {titulo}
+        </h2>
+      )}
+      {categorias.map((categoria) => (
+        <div key={categoria}>
+          <h3 className="text-lg font-semibold text-stone-500 mb-3 px-1">{categoria}</h3>
+          <div className="flex flex-col gap-4">
+            {lista
+              .filter((p) => p.categoria === categoria)
+              .map((prompt) => (
+                <CardPrompt key={prompt.id} prompt={prompt} />
+              ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function CardPrompt({ prompt }) {
   const [aberto, setAberto] = useState(false)
   const [copiado, setCopiado] = useState(false)
@@ -73,11 +99,10 @@ export default function Prompts() {
     return <p className="p-6 text-stone-500 text-lg">Carregando...</p>
   }
 
-  const listaFiltrada = encontroFiltro
+  const especificos = encontroFiltro
     ? prompts.filter((p) => p.encontro_origem === encontroFiltro)
-    : prompts
-
-  const categorias = [...new Set(listaFiltrada.map((p) => p.categoria))]
+    : []
+  const gerais = encontroFiltro ? prompts.filter((p) => !p.encontro_origem) : prompts
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
@@ -92,23 +117,17 @@ export default function Prompts() {
         </Link>
       )}
 
-      {listaFiltrada.length === 0 && (
-        <p className="text-stone-500 px-1">Nenhum prompt encontrado para este encontro.</p>
+      {encontroFiltro && especificos.length === 0 && (
+        <p className="text-stone-500 px-1 mb-6">
+          Ainda não há prompts feitos especialmente para este encontro. Estes da Biblioteca geral servem bem:
+        </p>
       )}
 
-      <div className="flex flex-col gap-8">
-        {categorias.map((categoria) => (
-          <div key={categoria}>
-            <h2 className="text-lg font-semibold text-stone-500 mb-3 px-1">{categoria}</h2>
-            <div className="flex flex-col gap-4">
-              {listaFiltrada
-                .filter((p) => p.categoria === categoria)
-                .map((prompt) => (
-                  <CardPrompt key={prompt.id} prompt={prompt} />
-                ))}
-            </div>
-          </div>
-        ))}
+      <div className="flex flex-col gap-10">
+        {especificos.length > 0 && <GrupoPrompts titulo="Deste encontro" lista={especificos} />}
+        {gerais.length > 0 && (
+          <GrupoPrompts titulo={encontroFiltro ? 'Prompts gerais da Biblioteca' : null} lista={gerais} />
+        )}
       </div>
     </div>
   )
