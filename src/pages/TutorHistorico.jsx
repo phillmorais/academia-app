@@ -15,7 +15,14 @@ function CardConversa({ conversa, mostrarAutor }) {
       to={`/tutor/historico/${conversa.id}`}
       className="block bg-white border border-stone-200 rounded-2xl p-5 active:bg-stone-50"
     >
-      <p className="text-stone-400 text-sm mb-1">{formatarQuando(conversa.criado_em)}</p>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <p className="text-stone-400 text-sm">{formatarQuando(conversa.criado_em)}</p>
+        {conversa.compartilhada && (
+          <span className="text-amber-800 text-xs font-semibold uppercase tracking-wide">
+            Compartilhada
+          </span>
+        )}
+      </div>
       <p className="text-lg font-semibold text-stone-800 mb-1">{rotuloModo(conversa.modo)}</p>
       {conversa.encontros?.livro && (
         <p className="text-stone-500 mb-1">{conversa.encontros.livro}</p>
