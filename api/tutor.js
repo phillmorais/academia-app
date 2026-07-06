@@ -52,13 +52,17 @@ async function buscarContribuicoesGrupo(supabase, encontroId, usuarioId) {
   return blocos.join('\n\n').slice(0, TAMANHO_MAXIMO_BLOCO_GRUPO)
 }
 
-function montarSystemPrompt(modo, contexto, contribuicoesGrupo) {
+function montarSystemPrompt(modo, contexto, contribuicoesGrupo, trilhaCompleta) {
   const livro = contexto?.livro || 'não definido ainda'
   const autor = contexto?.autor || 'não definido ainda'
   const problema = contexto?.problema || 'não definido ainda'
 
   const secaoGrupo = contribuicoesGrupo
     ? `\nReflexões que outras pessoas do grupo compartilharam sobre este mesmo encontro (use apenas como pano de fundo para enriquecer sua resposta quando fizer sentido; não cite nomes de forma indiscreta, prefira algo como "outra pessoa do grupo refletiu que..."):\n\n${contribuicoesGrupo}\n`
+    : ''
+
+  const secaoTrilha = trilhaCompleta
+    ? `\nA trilha completa da Academia, para referência caso a pessoa pergunte sobre outro encontro (o foco principal desta conversa continua sendo o encontro atual, descrito abaixo):\n${trilhaCompleta}\n`
     : ''
 
   return `Você é o Tutor da Academia — um espaço de estudo entre pessoas próximas, com o objetivo de aprender a usar a Inteligência Artificial como parceira intelectual na governança e na tomada de decisões em Conselhos de Administração.
@@ -70,7 +74,7 @@ Princípios da Academia que você deve encarnar:
 - Pensar melhor em ambientes complexos: você amplia o discernimento da pessoa, nunca o substitui. Não entregue conclusões prontas quando o valor está em a pessoa chegar nelas.
 - Diálogo fundamentado: valorize argumentos, evidências e diferentes perspectivas. Divergência bem fundamentada é bem-vinda.
 - Problemas antes de autores: use os livros e autores para iluminar problemas concretos de governança, não como fim em si.
-
+${secaoTrilha}
 O encontro atual da Academia é sobre:
 - Livro: ${livro}
 - Autor: ${autor}
@@ -80,6 +84,22 @@ Modo desta interação: ${modo}
 ${INSTRUCOES_POR_MODO[modo] || ''}
 
 Seja conciso. Respostas curtas e legíveis, uma ideia de cada vez. Lembre-se sempre: a decisão final é humana.`
+}
+
+async function buscarTrilhaCompleta(supabase) {
+  const { data } = await supabase
+    .from('encontros')
+    .select('numero, livro, autor, problema_governanca')
+    .order('numero', { ascending: true })
+
+  if (!data || data.length === 0) return ''
+
+  return data
+    .map((e) => {
+      const linha = `${e.numero}. ${e.livro || 'sem livro definido'}${e.autor ? ` — ${e.autor}` : ''}`
+      return e.problema_governanca ? `${linha}\n   Problema em pauta: ${e.problema_governanca}` : linha
+    })
+    .join('\n')
 }
 
 export default async function handler(req, res) {
@@ -152,8 +172,11 @@ export default async function handler(req, res) {
     return
   }
 
-  const contribuicoesGrupo = await buscarContribuicoesGrupo(supabase, encontroId, user.id)
-  const systemPrompt = montarSystemPrompt(modo, contexto, contribuicoesGrupo)
+  const [contribuicoesGrupo, trilhaCompleta] = await Promise.all([
+    buscarContribuicoesGrupo(supabase, encontroId, user.id),
+    buscarTrilhaCompleta(supabase),
+  ])
+  const systemPrompt = montarSystemPrompt(modo, contexto, contribuicoesGrupo, trilhaCompleta)
   const mensagensParaClaude = mensagens.map((m) => ({
     role: m.papel === 'usuario' ? 'user' : 'assistant',
     content: m.texto,
