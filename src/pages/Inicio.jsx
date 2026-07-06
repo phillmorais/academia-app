@@ -220,6 +220,52 @@ export default function Inicio() {
         </div>
       </section>
 
+      <section className="mb-9">
+        <h2 className="text-sm font-semibold text-stone-400 uppercase tracking-wide mb-3 px-1">
+          Como pedir bem para a IA
+        </h2>
+        <div className="bg-white border border-stone-200 rounded-2xl divide-y divide-stone-100">
+          {[
+            {
+              rotulo: 'Um papel',
+              texto: 'Diga que papel ela deve assumir.',
+              exemplo: '"Aja como um consultor experiente em governança."',
+            },
+            {
+              rotulo: 'A situação',
+              texto: 'Conte o contexto e o material que ela precisa conhecer.',
+            },
+            {
+              rotulo: 'O pedido',
+              texto: 'Diga com clareza o que você quer dela.',
+            },
+            {
+              rotulo: 'O formato',
+              texto: 'Diga como quer a resposta — lista, resumo, com calma...',
+            },
+            {
+              rotulo: 'Os limites',
+              texto: 'Diga o que ela não deve fazer.',
+              exemplo: '"Não invente, e me faça pensar em vez de dar a resposta pronta."',
+            },
+          ].map((item) => (
+            <div key={item.rotulo} className="p-5">
+              <p className="text-amber-800 font-semibold text-sm uppercase tracking-wide mb-1">
+                {item.rotulo}
+              </p>
+              <p className="text-stone-700 leading-relaxed">{item.texto}</p>
+              {item.exemplo && (
+                <p className="text-stone-500 italic leading-relaxed mt-1">{item.exemplo}</p>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-stone-500 leading-relaxed mt-3 px-1">
+          Os prompts prontos da <Link to="/prompts" className="text-amber-800 font-semibold">Biblioteca</Link> já
+          seguem esse formato — é só copiar e adaptar.
+        </p>
+      </section>
+
       <section>
         <h2 className="text-sm font-semibold text-stone-400 uppercase tracking-wide mb-3 px-1">
           O que você pode fazer aqui
