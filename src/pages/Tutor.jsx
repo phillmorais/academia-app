@@ -113,6 +113,7 @@ export default function Tutor() {
         body: JSON.stringify({
           modo: modoEscolhido,
           mensagens: historico,
+          conversaId: idConversa ?? null,
           encontroId: encontroParaContexto?.id ?? null,
           contexto: encontroParaContexto
             ? {

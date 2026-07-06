@@ -52,17 +52,29 @@ async function buscarContribuicoesGrupo(supabase, encontroId, usuarioId) {
   return blocos.join('\n\n').slice(0, TAMANHO_MAXIMO_BLOCO_GRUPO)
 }
 
-function montarSystemPrompt(modo, contexto, contribuicoesGrupo, trilhaCompleta) {
+function montarSystemPrompt(modo, contexto, secoes) {
   const livro = contexto?.livro || 'não definido ainda'
   const autor = contexto?.autor || 'não definido ainda'
   const problema = contexto?.problema || 'não definido ainda'
 
-  const secaoGrupo = contribuicoesGrupo
-    ? `\nReflexões que outras pessoas do grupo compartilharam sobre este mesmo encontro (use apenas como pano de fundo para enriquecer sua resposta quando fizer sentido; não cite nomes de forma indiscreta, prefira algo como "outra pessoa do grupo refletiu que..."):\n\n${contribuicoesGrupo}\n`
+  const secaoGrupo = secoes.contribuicoesGrupo
+    ? `\nReflexões que outras pessoas do grupo compartilharam sobre este mesmo encontro (use apenas como pano de fundo para enriquecer sua resposta quando fizer sentido; não cite nomes de forma indiscreta, prefira algo como "outra pessoa do grupo refletiu que..."):\n\n${secoes.contribuicoesGrupo}\n`
     : ''
 
-  const secaoTrilha = trilhaCompleta
-    ? `\nA trilha completa da Academia, para referência caso a pessoa pergunte sobre outro encontro (o foco principal desta conversa continua sendo o encontro atual, descrito abaixo):\n${trilhaCompleta}\n`
+  const secaoTrilha = secoes.trilhaCompleta
+    ? `\nA trilha completa da Academia, para referência caso a pessoa pergunte sobre outro encontro (o foco principal desta conversa continua sendo o encontro atual, descrito abaixo):\n${secoes.trilhaCompleta}\n`
+    : ''
+
+  const secaoRegistroAnterior = secoes.registroAnterior
+    ? `\nRegistro (memória destilada) do encontro anterior do grupo — use para retomar o fio, como se fosse a abertura de reconexão do encontro:\n${secoes.registroAnterior}\n`
+    : ''
+
+  const secaoBiblioteca = secoes.bibliotecaPrompts
+    ? `\nPrompts que já existem na Biblioteca do app (se um deles servir para o que a pessoa precisa, mencione o título em vez de inventar um prompt novo do zero):\n${secoes.bibliotecaPrompts}\n`
+    : ''
+
+  const secaoConversasProprias = secoes.conversasProprias
+    ? `\nConversas anteriores que você (Tutor) já teve com esta mesma pessoa (use para lembrar do que já foi discutido com ela, sem repetir do zero):\n\n${secoes.conversasProprias}\n`
     : ''
 
   return `Você é o Tutor da Academia — um espaço de estudo entre pessoas próximas, com o objetivo de aprender a usar a Inteligência Artificial como parceira intelectual na governança e na tomada de decisões em Conselhos de Administração.
@@ -79,7 +91,7 @@ O encontro atual da Academia é sobre:
 - Livro: ${livro}
 - Autor: ${autor}
 - Problema de governança em pauta: ${problema}
-${secaoGrupo}
+${secaoRegistroAnterior}${secaoBiblioteca}${secaoGrupo}${secaoConversasProprias}
 Modo desta interação: ${modo}
 ${INSTRUCOES_POR_MODO[modo] || ''}
 
@@ -100,6 +112,87 @@ async function buscarTrilhaCompleta(supabase) {
       return e.problema_governanca ? `${linha}\n   Problema em pauta: ${e.problema_governanca}` : linha
     })
     .join('\n')
+}
+
+const TAMANHO_MAXIMO_REGISTRO_ANTERIOR = 1500
+
+async function buscarRegistroAnterior(supabase, encontroId) {
+  if (!encontroId) return ''
+
+  const { data: atual } = await supabase.from('encontros').select('numero').eq('id', encontroId).single()
+  if (!atual) return ''
+
+  const { data: anterior } = await supabase
+    .from('encontros')
+    .select('id')
+    .lt('numero', atual.numero)
+    .order('numero', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!anterior) return ''
+
+  const { data: registro } = await supabase
+    .from('registros')
+    .select('conteudo')
+    .eq('encontro_id', anterior.id)
+    .maybeSingle()
+
+  if (!registro?.conteudo) return ''
+
+  return registro.conteudo.slice(0, TAMANHO_MAXIMO_REGISTRO_ANTERIOR)
+}
+
+async function buscarBibliotecaPrompts(supabase) {
+  const { data } = await supabase
+    .from('prompts')
+    .select('titulo, categoria, contexto_uso')
+    .order('categoria', { ascending: true })
+
+  if (!data || data.length === 0) return ''
+
+  return data
+    .map((p) => `- "${p.titulo}" (${p.categoria})${p.contexto_uso ? ` — ${p.contexto_uso}` : ''}`)
+    .join('\n')
+}
+
+const MAXIMO_CONVERSAS_PROPRIAS = 2
+const MAXIMO_MENSAGENS_POR_CONVERSA_PROPRIA = 4
+const TAMANHO_MAXIMO_BLOCO_PROPRIO = 1500
+
+async function buscarConversasProprias(supabase, usuarioId, conversaIdAtual) {
+  let query = supabase
+    .from('tutor_conversas')
+    .select('id, modo')
+    .eq('usuario_id', usuarioId)
+    .order('criado_em', { ascending: false })
+    .limit(MAXIMO_CONVERSAS_PROPRIAS + 1)
+
+  if (conversaIdAtual) {
+    query = query.neq('id', conversaIdAtual)
+  }
+
+  const { data: conversas } = await query
+  if (!conversas || conversas.length === 0) return ''
+
+  const blocos = []
+  for (const conversa of conversas.slice(0, MAXIMO_CONVERSAS_PROPRIAS)) {
+    const { data: mensagens } = await supabase
+      .from('tutor_mensagens')
+      .select('papel, texto')
+      .eq('conversa_id', conversa.id)
+      .order('criado_em', { ascending: true })
+      .limit(MAXIMO_MENSAGENS_POR_CONVERSA_PROPRIA)
+
+    if (!mensagens || mensagens.length === 0) continue
+
+    const linhas = mensagens
+      .map((m) => `  ${m.papel === 'usuario' ? 'Pessoa' : 'Tutor'}: ${m.texto}`)
+      .join('\n')
+    blocos.push(`- Conversa anterior (modo "${conversa.modo}"):\n${linhas}`)
+  }
+
+  return blocos.join('\n\n').slice(0, TAMANHO_MAXIMO_BLOCO_PROPRIO)
 }
 
 export default async function handler(req, res) {
@@ -139,7 +232,7 @@ export default async function handler(req, res) {
     return
   }
 
-  const { modo, mensagens, contexto, encontroId } = req.body || {}
+  const { modo, mensagens, contexto, encontroId, conversaId } = req.body || {}
 
   if (!modo || !INSTRUCOES_POR_MODO[modo]) {
     res.status(400).json({ erro: 'Modo inválido.' })
@@ -172,11 +265,21 @@ export default async function handler(req, res) {
     return
   }
 
-  const [contribuicoesGrupo, trilhaCompleta] = await Promise.all([
-    buscarContribuicoesGrupo(supabase, encontroId, user.id),
-    buscarTrilhaCompleta(supabase),
-  ])
-  const systemPrompt = montarSystemPrompt(modo, contexto, contribuicoesGrupo, trilhaCompleta)
+  const [contribuicoesGrupo, trilhaCompleta, registroAnterior, bibliotecaPrompts, conversasProprias] =
+    await Promise.all([
+      buscarContribuicoesGrupo(supabase, encontroId, user.id),
+      buscarTrilhaCompleta(supabase),
+      buscarRegistroAnterior(supabase, encontroId),
+      buscarBibliotecaPrompts(supabase),
+      buscarConversasProprias(supabase, user.id, conversaId),
+    ])
+  const systemPrompt = montarSystemPrompt(modo, contexto, {
+    contribuicoesGrupo,
+    trilhaCompleta,
+    registroAnterior,
+    bibliotecaPrompts,
+    conversasProprias,
+  })
   const mensagensParaClaude = mensagens.map((m) => ({
     role: m.papel === 'usuario' ? 'user' : 'assistant',
     content: m.texto,
