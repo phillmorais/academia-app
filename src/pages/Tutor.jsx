@@ -6,32 +6,6 @@ import { MODOS, rotuloModo } from '../lib/tutorModos'
 import MensagemMarkdown from '../components/MensagemMarkdown'
 import BotaoCopiar from '../components/BotaoCopiar'
 
-function TelaEscolha({ aoEscolher }) {
-  return (
-    <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6 px-1">
-        <h1 className="text-2xl font-semibold text-stone-900 tracking-tight">Tutor</h1>
-        <Link to="/tutor/historico" className="text-amber-800 font-medium">
-          Conversas anteriores
-        </Link>
-      </div>
-      <p className="text-stone-500 mb-6 px-1">O que você quer fazer agora?</p>
-      <div className="flex flex-col gap-4">
-        {MODOS.map((modo) => (
-          <button
-            key={modo.chave}
-            onClick={() => aoEscolher(modo.chave)}
-            className="text-left bg-white border border-stone-200 rounded-2xl p-5 active:bg-stone-50"
-          >
-            <p className="text-xl font-semibold text-stone-800 mb-1">{modo.titulo}</p>
-            <p className="text-stone-500 leading-snug">{modo.descricao}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export default function Tutor() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
@@ -171,7 +145,7 @@ export default function Tutor() {
 
     setConversaId(conversa?.id ?? null)
 
-    if (chave === 'perguntar') {
+    if (chave === 'perguntar' && !mensagemInicial) {
       const primeira = { papel: 'usuario', texto: 'Podemos começar.' }
       setMensagens([primeira])
       enviarParaTutor(chave, [primeira], conversa?.id, encontroParaContexto)
@@ -185,20 +159,17 @@ export default function Tutor() {
     }
   }
 
-  function escolherModo(chave) {
-    iniciarConversa(chave, encontroAtual)
-  }
-
-  function escolherConceito(conceito) {
-    enviarTexto(conceito)
-  }
-
   async function enviarMensagem(e) {
     e.preventDefault()
     if (!entrada.trim() || enviando) return
     const texto = entrada.trim()
     setEntrada('')
-    await enviarTexto(texto)
+
+    if (!conversaId) {
+      await iniciarConversa('livre', encontroAtual, texto)
+    } else {
+      await enviarTexto(texto)
+    }
   }
 
   async function alternarCompartilhamento() {
@@ -209,7 +180,7 @@ export default function Tutor() {
     }
   }
 
-  function trocarDeModo() {
+  function novaConversa() {
     setModo(null)
     setMensagens([])
     setErro('')
@@ -224,27 +195,54 @@ export default function Tutor() {
       .then(({ data }) => setEncontroAtual(data))
   }
 
-  if (!modo) {
-    return <TelaEscolha aoEscolher={escolherModo} />
-  }
+  const conceitosSugeridos = (encontroAtual?.conceitos_chave || '')
+    .split('\n')
+    .map((c) => c.trim())
+    .filter(Boolean)
 
-  const aguardandoPrimeiraEntrada = modo !== 'perguntar' && mensagens.length === 0
-  const conceitosSugeridos =
-    modo === 'explicar'
-      ? (encontroAtual?.conceitos_chave || '')
-          .split('\n')
-          .map((c) => c.trim())
-          .filter(Boolean)
-      : []
+  const sugestoes = [
+    ...conceitosSugeridos.map((conceito) => ({
+      chave: `conceito-${conceito}`,
+      rotulo: conceito,
+      aoTocar: () => iniciarConversa('explicar', encontroAtual, `Me explique com calma o conceito: ${conceito}`),
+    })),
+    ...(conceitosSugeridos.length === 0
+      ? [
+          {
+            chave: 'explicar',
+            rotulo: 'Me explique um conceito com calma',
+            aoTocar: () =>
+              iniciarConversa('explicar', encontroAtual, 'Quero entender melhor um conceito do encontro atual.'),
+          },
+        ]
+      : []),
+    {
+      chave: 'perguntar',
+      rotulo: 'Me faça perguntas sobre o problema deste mês',
+      aoTocar: () => iniciarConversa('perguntar', encontroAtual),
+    },
+    {
+      chave: 'criticar',
+      rotulo: 'Quero testar uma ideia minha',
+      aoTocar: () => iniciarConversa('criticar', encontroAtual, 'Quero testar um raciocínio meu com você.'),
+    },
+  ]
 
   return (
     <div className="flex flex-col h-[calc(100dvh-6rem)] max-w-2xl mx-auto">
       <div className="px-4 pt-6 pb-3 border-b border-stone-200">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-semibold text-stone-900">{rotuloModo(modo)}</h1>
-          <button onClick={trocarDeModo} className="text-amber-800 font-medium">
-            Trocar
-          </button>
+          <h1 className="text-xl font-semibold text-stone-900">{modo ? rotuloModo(modo) : 'Tutor'}</h1>
+          <div className="flex items-center gap-4">
+            <Link to="/tutor/historico" className="text-amber-800 font-medium text-sm">
+              Conversas anteriores
+            </Link>
+            {mensagens.length > 0 && (
+              <button onClick={novaConversa} className="text-amber-800 font-medium text-sm">
+                Nova conversa
+              </button>
+            )}
+          </div>
         </div>
         {mensagens.length > 0 && (
           <label className="flex items-center gap-2 text-sm text-stone-500">
@@ -255,26 +253,22 @@ export default function Tutor() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
-        {aguardandoPrimeiraEntrada && (
+        {mensagens.length === 0 && (
           <div>
             <p className="text-stone-500 leading-relaxed mb-3">
-              {modo === 'explicar'
-                ? 'Escreva abaixo o conceito que você quer entender melhor.'
-                : 'Escreva abaixo a ideia ou o argumento que você quer colocar à prova.'}
+              Pergunte o que quiser sobre o encontro atual, ou toque numa sugestão:
             </p>
-            {conceitosSugeridos.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {conceitosSugeridos.map((conceito) => (
-                  <button
-                    key={conceito}
-                    onClick={() => escolherConceito(conceito)}
-                    className="bg-white border border-stone-300 rounded-full px-4 py-2 text-stone-700 font-medium active:bg-stone-50"
-                  >
-                    {conceito}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {sugestoes.map((s) => (
+                <button
+                  key={s.chave}
+                  onClick={s.aoTocar}
+                  className="bg-white border border-stone-300 rounded-full px-4 py-2 text-stone-700 font-medium active:bg-stone-50"
+                >
+                  {s.rotulo}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

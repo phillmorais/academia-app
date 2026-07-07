@@ -1,5 +1,10 @@
 export const MODOS = [
   {
+    chave: 'livre',
+    titulo: 'Conversa livre',
+    descricao: 'Pergunte o que quiser, do seu jeito.',
+  },
+  {
     chave: 'explicar',
     titulo: 'Me explique com calma',
     descricao: 'Peça para entender melhor um conceito do livro ou do tema do mês.',

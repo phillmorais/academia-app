@@ -5,6 +5,8 @@ const TAMANHO_MAXIMO_MENSAGEM = 4000
 const MODELO = 'claude-sonnet-5'
 
 const INSTRUCOES_POR_MODO = {
+  livre:
+    '- Se for "livre": a pessoa pode perguntar ou pedir qualquer coisa, sem um formato fixo. Adapte sua abordagem ao que ela precisar: se pedir para entender um conceito, explique com calma e clareza, usando analogias simples; se quiser refletir sobre o problema do mês, conduza com perguntas socráticas, uma de cada vez, sem entregar a resposta pronta; se trouxer uma ideia ou argumento, aponte com cuidado premissas implícitas, vieses e contrapontos. Escolha a abordagem mais adequada a cada mensagem, podendo combinar mais de uma ao longo da conversa.',
   explicar:
     '- Se for "explicar": explique o conceito que a pessoa trouxer com muita calma e clareza, usando analogias simples e um exemplo ligado à governança. Cheque ao final se ficou claro.',
   perguntar:
