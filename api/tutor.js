@@ -4,15 +4,18 @@ const LIMITE_DIARIO = 40
 const TAMANHO_MAXIMO_MENSAGEM = 4000
 const MODELO = 'claude-sonnet-5'
 
+const INSTRUCAO_VIESES =
+  'Ao apontar vieses, nomeie o viés especificamente quando fizer sentido (ex: viés de confirmação, ancoragem, efeito manada, custo afundado, excesso de confiança) e explique em uma frase simples o que ele significa — isso ajuda a pessoa a levar o vocabulário para outras decisões.'
+
 const INSTRUCOES_POR_MODO = {
   livre:
-    '- Se for "livre": a pessoa pode perguntar ou pedir qualquer coisa, sem um formato fixo. Adapte sua abordagem ao que ela precisar: se pedir para entender um conceito, explique com calma e clareza, usando analogias simples; se quiser refletir sobre o problema do mês, conduza com perguntas socráticas, uma de cada vez, sem entregar a resposta pronta; se trouxer uma ideia ou argumento, aponte com cuidado premissas implícitas, vieses e contrapontos. Escolha a abordagem mais adequada a cada mensagem, podendo combinar mais de uma ao longo da conversa.',
+    `- Se for "livre": a pessoa pode perguntar ou pedir qualquer coisa, sem um formato fixo. Adapte sua abordagem ao que ela precisar: se pedir para entender um conceito, explique com calma e clareza, usando analogias simples; se quiser refletir sobre o problema do mês, conduza com perguntas socráticas, uma de cada vez, sem entregar a resposta pronta; se trouxer uma ideia ou argumento, aponte com cuidado premissas implícitas, vieses e contrapontos. Escolha a abordagem mais adequada a cada mensagem, podendo combinar mais de uma ao longo da conversa. ${INSTRUCAO_VIESES}`,
   explicar:
     '- Se for "explicar": explique o conceito que a pessoa trouxer com muita calma e clareza, usando analogias simples e um exemplo ligado à governança. Cheque ao final se ficou claro.',
   perguntar:
     '- Se for "perguntar": conduza uma investigação socrática sobre o problema em pauta. Faça UMA pergunta de cada vez, curta e provocadora, e espere a resposta antes de seguir. Não dê a resposta você mesmo.',
   criticar:
-    '- Se for "criticar": a pessoa apresentará um raciocínio. Aponte com cuidado as premissas implícitas, os possíveis vieses e um ou dois contrapontos fundamentados. Não humilhe; ajude a fortalecer o pensamento.',
+    `- Se for "criticar": a pessoa apresentará um raciocínio. Aponte com cuidado as premissas implícitas, os possíveis vieses e um ou dois contrapontos fundamentados. Não humilhe; ajude a fortalecer o pensamento. ${INSTRUCAO_VIESES}`,
 }
 
 const MAXIMO_CONVERSAS_GRUPO = 3
@@ -72,7 +75,7 @@ function montarSystemPrompt(modo, contexto, secoes) {
     : ''
 
   const secaoBiblioteca = secoes.bibliotecaPrompts
-    ? `\nPrompts que já existem na Biblioteca do app (se um deles servir para o que a pessoa precisa, mencione o título em vez de inventar um prompt novo do zero):\n${secoes.bibliotecaPrompts}\n`
+    ? `\nPrompts que já existem na Biblioteca do app (se um deles servir para o que a pessoa precisa, mencione o título em vez de inventar um prompt novo do zero, e ofereça montar uma versão já preenchida com a situação dela, pronta para copiar):\n${secoes.bibliotecaPrompts}\n`
     : ''
 
   const secaoConversasProprias = secoes.conversasProprias
@@ -96,6 +99,8 @@ O encontro atual da Academia é sobre:
 ${secaoRegistroAnterior}${secaoBiblioteca}${secaoGrupo}${secaoConversasProprias}
 Modo desta interação: ${modo}
 ${INSTRUCOES_POR_MODO[modo] || ''}
+
+Se a pessoa pedir um resumo da conversa a qualquer momento, atenda prontamente com um resumo curto dos pontos principais já discutidos — isso vale para qualquer modo, mesmo em "perguntar".
 
 Seja conciso. Respostas curtas e legíveis, uma ideia de cada vez. Lembre-se sempre: a decisão final é humana.`
 }

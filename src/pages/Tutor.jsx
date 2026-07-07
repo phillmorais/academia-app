@@ -180,6 +180,11 @@ export default function Tutor() {
     }
   }
 
+  async function pedirResumo() {
+    if (enviando) return
+    await enviarTexto('Pode fazer um resumo curto do que conversamos até agora?')
+  }
+
   function novaConversa() {
     setModo(null)
     setMensagens([])
@@ -237,6 +242,11 @@ export default function Tutor() {
             <Link to="/tutor/historico" className="text-amber-800 font-medium text-sm">
               Conversas anteriores
             </Link>
+            {mensagens.length > 0 && (
+              <button onClick={pedirResumo} disabled={enviando} className="text-amber-800 font-medium text-sm">
+                Resumir conversa
+              </button>
+            )}
             {mensagens.length > 0 && (
               <button onClick={novaConversa} className="text-amber-800 font-medium text-sm">
                 Nova conversa
