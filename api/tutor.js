@@ -302,7 +302,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 1024,
+        max_tokens: 2048,
+        thinking: { type: 'disabled' },
         system: systemPrompt,
         messages: mensagensParaClaude,
       }),

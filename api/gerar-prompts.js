@@ -109,7 +109,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 2048,
+        max_tokens: 3072,
+        thinking: { type: 'disabled' },
         messages: [{ role: 'user', content: montarPrompt(encontro, QUANTIDADE_SUGESTOES) }],
       }),
     })
