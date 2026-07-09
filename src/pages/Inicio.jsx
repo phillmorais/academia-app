@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
 
 const MESES = [
   'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
@@ -93,10 +94,10 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
       </div>
       <div>
         <label className="block text-stone-700 mb-2 font-medium">Problema de governança</label>
-        <textarea
+        <CampoAutoAjustavel
           value={problema}
           onChange={(e) => setProblema(e.target.value)}
-          rows={4}
+          minRows={4}
           className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
         />
       </div>
@@ -104,10 +105,10 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
         <label className="block text-stone-700 mb-2 font-medium">
           Conceitos-chave <span className="text-stone-400 font-normal">(um por linha — viram sugestões no Tutor)</span>
         </label>
-        <textarea
+        <CampoAutoAjustavel
           value={conceitosChave}
           onChange={(e) => setConceitosChave(e.target.value)}
-          rows={4}
+          minRows={4}
           className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
         />
       </div>

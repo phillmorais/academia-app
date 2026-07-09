@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import Markdown from '../components/Markdown'
+import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
 
 export default function RegistroDetalhe() {
   const { id } = useParams()
@@ -75,10 +76,10 @@ export default function RegistroDetalhe() {
 
       {editando ? (
         <div className="flex flex-col gap-4">
-          <textarea
+          <CampoAutoAjustavel
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            rows={14}
+            minRows={14}
             placeholder="Cole aqui o texto destilado do encontro..."
             className="w-full text-lg px-4 py-3.5 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20 leading-relaxed"
           />

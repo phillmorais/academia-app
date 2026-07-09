@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
 
 function CartaoSugestao({ sugestao, encontroId, onAlterar }) {
   const [adicionado, setAdicionado] = useState(false)
@@ -31,10 +32,10 @@ function CartaoSugestao({ sugestao, encontroId, onAlterar }) {
         onChange={(e) => onAlterar({ ...sugestao, categoria: e.target.value })}
         className="w-full text-sm text-stone-500 mb-3 border-b border-stone-200 pb-1 focus:outline-none focus:border-amber-700"
       />
-      <textarea
+      <CampoAutoAjustavel
         value={sugestao.texto}
         onChange={(e) => onAlterar({ ...sugestao, texto: e.target.value })}
-        rows={4}
+        minRows={4}
         className="w-full text-stone-700 leading-relaxed mb-3 p-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-700"
       />
       <input

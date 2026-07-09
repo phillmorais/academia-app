@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
 
 export default function NovoEncontro() {
   const navigate = useNavigate()
@@ -104,10 +105,10 @@ export default function NovoEncontro() {
         </div>
         <div>
           <label className="block text-stone-700 mb-2 font-medium">Problema de governança</label>
-          <textarea
+          <CampoAutoAjustavel
             value={problema}
             onChange={(e) => setProblema(e.target.value)}
-            rows={4}
+            minRows={4}
             className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
           />
         </div>
@@ -115,10 +116,10 @@ export default function NovoEncontro() {
           <label className="block text-stone-700 mb-2 font-medium">
             Conceitos-chave <span className="text-stone-400 font-normal">(um por linha — viram sugestões no Tutor)</span>
           </label>
-          <textarea
+          <CampoAutoAjustavel
             value={conceitosChave}
             onChange={(e) => setConceitosChave(e.target.value)}
-            rows={4}
+            minRows={4}
             placeholder={'Fronteira irregular\nCointeligência\nAs quatro regras de Mollick'}
             className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
           />
@@ -127,10 +128,10 @@ export default function NovoEncontro() {
           <label className="block text-stone-700 mb-2 font-medium">
             Roteiro do encontro <span className="text-stone-400 font-normal">(opcional, pode completar depois)</span>
           </label>
-          <textarea
+          <CampoAutoAjustavel
             value={roteiro}
             onChange={(e) => setRoteiro(e.target.value)}
-            rows={6}
+            minRows={6}
             className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
           />
         </div>

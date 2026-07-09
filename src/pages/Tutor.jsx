@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { MODOS, rotuloModo } from '../lib/tutorModos'
 import MensagemMarkdown from '../components/MensagemMarkdown'
 import BotaoCopiar from '../components/BotaoCopiar'
+import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
 
 export default function Tutor() {
   const { usuario } = useAuth()
@@ -307,17 +308,24 @@ export default function Tutor() {
         <div ref={fimDaLista} />
       </div>
 
-      <form onSubmit={enviarMensagem} className="p-4 border-t border-stone-200 flex gap-3">
-        <input
+      <form onSubmit={enviarMensagem} className="p-4 border-t border-stone-200 flex gap-3 items-end">
+        <CampoAutoAjustavel
           value={entrada}
           onChange={(e) => setEntrada(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              enviarMensagem(e)
+            }
+          }}
           placeholder="Escreva aqui..."
-          className="flex-1 text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+          minRows={1}
+          className="flex-1 text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20 max-h-40 overflow-y-auto"
         />
         <button
           type="submit"
           disabled={enviando || !entrada.trim()}
-          className="bg-stone-900 text-white px-5 rounded-xl font-semibold disabled:opacity-50"
+          className="bg-stone-900 text-white px-5 py-3 rounded-xl font-semibold disabled:opacity-50"
         >
           Enviar
         </button>
