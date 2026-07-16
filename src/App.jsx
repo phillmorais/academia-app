@@ -13,6 +13,7 @@ import RegistroDetalhe from './pages/RegistroDetalhe'
 import Tutor from './pages/Tutor'
 import TutorHistorico from './pages/TutorHistorico'
 import TutorConversa from './pages/TutorConversa'
+import Conta from './pages/Conta'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/tutor" element={<Tutor />} />
             <Route path="/tutor/historico" element={<TutorHistorico />} />
             <Route path="/tutor/historico/:id" element={<TutorConversa />} />
+            <Route path="/conta" element={<Conta />} />
           </Route>
         </Routes>
       </AuthProvider>

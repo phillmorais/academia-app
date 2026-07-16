@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { MODOS, rotuloModo } from '../lib/tutorModos'
+import { escolherEncontroDestaque } from '../lib/encontros'
 import MensagemMarkdown from '../components/MensagemMarkdown'
 import BotaoCopiar from '../components/BotaoCopiar'
 import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
@@ -50,7 +51,8 @@ export default function Tutor() {
         return
       }
 
-      const { data: atual } = await supabase.from('encontros').select('*').eq('status', 'atual').maybeSingle()
+      const { data: todos } = await supabase.from('encontros').select('*').order('numero', { ascending: true })
+      const atual = escolherEncontroDestaque(todos)
       setEncontroAtual(atual)
 
       const modoDeepLink = searchParams.get('modo')
@@ -103,7 +105,7 @@ export default function Tutor() {
       const dados = await resposta.json()
 
       if (!resposta.ok) {
-        throw new Error(dados.depuracao ? `${dados.erro} [${dados.depuracao}]` : dados.erro)
+        throw new Error(dados.erro)
       }
 
       setMensagens((atual) => [...atual, { papel: 'tutor', texto: dados.resposta }])
@@ -196,9 +198,8 @@ export default function Tutor() {
     supabase
       .from('encontros')
       .select('*')
-      .eq('status', 'atual')
-      .maybeSingle()
-      .then(({ data }) => setEncontroAtual(data))
+      .order('numero', { ascending: true })
+      .then(({ data }) => setEncontroAtual(escolherEncontroDestaque(data)))
   }
 
   const conceitosSugeridos = (encontroAtual?.conceitos_chave || '')

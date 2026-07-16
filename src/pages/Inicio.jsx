@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
+import { escolherEncontroDestaque } from '../lib/encontros'
 
 const MESES = [
   'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
@@ -145,21 +146,20 @@ export default function Inicio() {
   }, [])
 
   async function carregar() {
-    const { data, error } = await supabase
-      .from('encontros')
-      .select('*')
-      .neq('status', 'concluido')
-      .order('numero', { ascending: true })
-      .limit(1)
-      .maybeSingle()
+    const { data, error } = await supabase.from('encontros').select('*').order('numero', { ascending: true })
 
     if (error) setErro('Não conseguimos carregar o próximo encontro agora.')
-    else setProximoEncontro(data)
+    else setProximoEncontro(escolherEncontroDestaque(data))
   }
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-semibold text-stone-900 tracking-tight mb-6 px-1">Academia</h1>
+      <div className="flex items-center justify-between mb-6 px-1">
+        <h1 className="text-2xl font-semibold text-stone-900 tracking-tight">Academia</h1>
+        <Link to="/conta" className="text-amber-800 font-medium text-sm">
+          Minha conta
+        </Link>
+      </div>
 
       <section className="mb-9">
         <h2 className="text-sm font-semibold text-stone-400 uppercase tracking-wide mb-3 px-1">

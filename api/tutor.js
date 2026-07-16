@@ -312,10 +312,7 @@ export default async function handler(req, res) {
     if (!respostaClaude.ok) {
       const detalhe = await respostaClaude.text()
       console.error('Erro na API do Claude:', detalhe)
-      res.status(502).json({
-        erro: 'O Tutor não conseguiu responder agora. Tente novamente.',
-        depuracao: detalhe.slice(0, 500),
-      })
+      res.status(502).json({ erro: 'O Tutor não conseguiu responder agora. Tente novamente.' })
       return
     }
 
@@ -324,10 +321,7 @@ export default async function handler(req, res) {
 
     if (!texto) {
       console.error('Resposta da API do Claude sem texto:', JSON.stringify(dados))
-      res.status(502).json({
-        erro: 'O Tutor respondeu de um jeito inesperado.',
-        depuracao: JSON.stringify(dados).slice(0, 500),
-      })
+      res.status(502).json({ erro: 'O Tutor respondeu de um jeito inesperado. Tente novamente.' })
       return
     }
 
@@ -341,9 +335,6 @@ export default async function handler(req, res) {
     res.status(200).json({ resposta: texto })
   } catch (erro) {
     console.error('Erro ao chamar a API do Claude:', erro)
-    res.status(500).json({
-      erro: 'Algo deu errado ao falar com o Tutor. Tente novamente.',
-      depuracao: String(erro?.message || erro).slice(0, 500),
-    })
+    res.status(500).json({ erro: 'Algo deu errado ao falar com o Tutor. Tente novamente.' })
   }
 }

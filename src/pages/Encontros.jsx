@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { escolherEncontroDestaque, rotuloDestaque } from '../lib/encontros'
 
 const MESES = [
   'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
@@ -12,20 +13,6 @@ function formatarData(data) {
   if (!data) return null
   const [ano, mes, dia] = data.split('-')
   return `${dia} de ${MESES[Number(mes) - 1]} de ${ano}`
-}
-
-function hojeISO() {
-  const agora = new Date()
-  const fuso = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
-  return fuso.toISOString().slice(0, 10)
-}
-
-function rotuloDestaque(data) {
-  if (!data) return 'PRÓXIMO ENCONTRO'
-  const hoje = hojeISO()
-  if (data === hoje) return 'ENCONTRO DE HOJE'
-  if (data > hoje) return 'PRÓXIMO ENCONTRO'
-  return 'ENCONTRO EM DESTAQUE'
 }
 
 function CardEncontro({ encontro, destaque }) {
@@ -95,8 +82,8 @@ export default function Encontros() {
     return <p className="p-6 text-stone-500 text-lg">Carregando...</p>
   }
 
-  const atual = encontros.find((e) => e.status === 'atual')
-  const restante = encontros.filter((e) => e.id !== atual?.id)
+  const destaque = escolherEncontroDestaque(encontros)
+  const restante = encontros.filter((e) => e.id !== destaque?.id)
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-2xl mx-auto">
@@ -111,7 +98,7 @@ export default function Encontros() {
         )}
       </div>
       <div className="flex flex-col gap-4">
-        {atual && <CardEncontro encontro={atual} destaque />}
+        {destaque && <CardEncontro encontro={destaque} destaque />}
         {restante.map((encontro) => (
           <CardEncontro key={encontro.id} encontro={encontro} />
         ))}
