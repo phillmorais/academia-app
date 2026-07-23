@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-const LIMITE_DIARIO = 40
+const LIMITE_DIARIO = 80
 const MODELO = 'claude-sonnet-5'
 
 const INSTRUCAO_VIESES =
