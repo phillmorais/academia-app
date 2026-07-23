@@ -19,10 +19,13 @@ create table encontros (
   titulo text not null,
   livro text,
   autor text,
-  problema_governanca text,
+  problema_governanca text, -- a "pergunta central" do encontro (nome da coluna mantido por estabilidade)
+  trecho_em_estudo text, -- ex: "Capítulos 1 a 3"
+  ciclo int, -- agrupamento temático do Memorial (1 a 4); null para leituras complementares
   roteiro text,
   conceitos_chave text, -- um conceito por linha, usado como sugestão no Tutor
-  status text not null default 'proximo', -- 'proximo' | 'atual' | 'concluido'
+  complementar boolean not null default false, -- leitura fora da trilha numerada (ex: 2041)
+  status text not null default 'futuro', -- 'futuro' | 'atual' | 'concluido'
   criado_em timestamptz default now()
 );
 

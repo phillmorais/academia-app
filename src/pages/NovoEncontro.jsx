@@ -12,6 +12,9 @@ export default function NovoEncontro() {
   const [problema, setProblema] = useState('')
   const [conceitosChave, setConceitosChave] = useState('')
   const [roteiro, setRoteiro] = useState('')
+  const [ciclo, setCiclo] = useState('')
+  const [trechoEmEstudo, setTrechoEmEstudo] = useState('')
+  const [complementar, setComplementar] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -41,7 +44,10 @@ export default function NovoEncontro() {
         problema_governanca: problema,
         conceitos_chave: conceitosChave || null,
         roteiro: roteiro || null,
-        status: 'proximo',
+        ciclo: ciclo ? Number(ciclo) : null,
+        trecho_em_estudo: trechoEmEstudo || null,
+        complementar,
+        status: 'futuro',
       })
       .select()
       .single()
@@ -104,7 +110,7 @@ export default function NovoEncontro() {
           />
         </div>
         <div>
-          <label className="block text-stone-700 mb-2 font-medium">Problema de governança</label>
+          <label className="block text-stone-700 mb-2 font-medium">Pergunta central</label>
           <CampoAutoAjustavel
             value={problema}
             onChange={(e) => setProblema(e.target.value)}
@@ -112,6 +118,36 @@ export default function NovoEncontro() {
             className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
           />
         </div>
+        <div>
+          <label className="block text-stone-700 mb-2 font-medium">
+            Trecho em estudo <span className="text-stone-400 font-normal">(opcional, ex: "Capítulos 1 a 3")</span>
+          </label>
+          <input
+            value={trechoEmEstudo}
+            onChange={(e) => setTrechoEmEstudo(e.target.value)}
+            className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+          />
+        </div>
+        <div>
+          <label className="block text-stone-700 mb-2 font-medium">
+            Ciclo <span className="text-stone-400 font-normal">(opcional)</span>
+          </label>
+          <select
+            value={ciclo}
+            onChange={(e) => setCiclo(e.target.value)}
+            className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+          >
+            <option value="">— nenhum —</option>
+            <option value="1">Ciclo 1 — Utilização e impacto inicial da IA</option>
+            <option value="2">Ciclo 2 — Ruptura e estratégia</option>
+            <option value="3">Ciclo 3 — Decisão</option>
+            <option value="4">Ciclo 4 — Complexidade e gestão</option>
+          </select>
+        </div>
+        <label className="flex items-center gap-2 text-stone-700">
+          <input type="checkbox" checked={complementar} onChange={(e) => setComplementar(e.target.checked)} />
+          Leitura complementar (não entra na trilha numerada)
+        </label>
         <div>
           <label className="block text-stone-700 mb-2 font-medium">
             Conceitos-chave <span className="text-stone-400 font-normal">(um por linha — viram sugestões no Tutor)</span>

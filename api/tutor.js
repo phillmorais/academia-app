@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { montarRepertorio } from '../src/lib/encontros.js'
 
 const LIMITE_DIARIO = 80
 const MODELO = 'claude-sonnet-5'
@@ -167,23 +168,22 @@ Se a pessoa pedir um resumo da conversa a qualquer momento, atenda prontamente c
 Seja conciso. Uma ideia de cada vez, em texto legível e bem espaçado. Prefira perguntas a sermões. Termine, quando fizer sentido, devolvendo à participante a pergunta ou a decisão — a responsabilidade pela conclusão é dela.`
 }
 
+function formatarLivro(e) {
+  return `- ${e.livro || 'sem livro definido'}${e.autor ? ` — ${e.autor}` : ''}`
+}
+
 async function buscarRepertorio(supabase) {
   const { data } = await supabase
     .from('encontros')
-    .select('livro, autor, status')
+    .select('numero, livro, autor, status, complementar')
     .order('numero', { ascending: true })
 
-  if (!data || data.length === 0) return { livrosConcluidos: '', livrosFuturos: '' }
+  const { livrosConcluidos, livrosFuturos } = montarRepertorio(data || [])
 
-  const formatar = (e) => `- ${e.livro || 'sem livro definido'}${e.autor ? ` — ${e.autor}` : ''}`
-
-  const livrosConcluidos = data.filter((e) => e.status === 'concluido').map(formatar).join('\n')
-  const livrosFuturos = data
-    .filter((e) => e.status === 'proximo' || e.status === 'futuro')
-    .map(formatar)
-    .join('\n')
-
-  return { livrosConcluidos, livrosFuturos }
+  return {
+    livrosConcluidos: livrosConcluidos.map(formatarLivro).join('\n'),
+    livrosFuturos: livrosFuturos.map(formatarLivro).join('\n'),
+  }
 }
 
 const TAMANHO_MAXIMO_REGISTRO_ANTERIOR = 1500

@@ -41,9 +41,13 @@ export default function EncontroDetalhe() {
       <h1 className="text-3xl font-semibold text-stone-900 tracking-tight mb-1">{encontro.livro}</h1>
       {encontro.autor && <p className="text-stone-500 text-lg mb-4">{encontro.autor}</p>}
 
+      {encontro.trecho_em_estudo && (
+        <p className="text-stone-500 mb-4">Trecho em estudo: {encontro.trecho_em_estudo}</p>
+      )}
+
       {encontro.problema_governanca && (
         <div className="bg-stone-900 rounded-2xl p-6 mb-6">
-          <p className="text-amber-400 font-semibold mb-2 tracking-wide">O problema em pauta</p>
+          <p className="text-amber-400 font-semibold mb-2 tracking-wide">Pergunta central</p>
           <p className="text-stone-100 text-lg leading-relaxed">{encontro.problema_governanca}</p>
         </div>
       )}

@@ -97,6 +97,7 @@ export default function Tutor() {
                 livro: encontroParaContexto.livro,
                 autor: encontroParaContexto.autor,
                 problema: encontroParaContexto.problema_governanca,
+                trecho: encontroParaContexto.trecho_em_estudo,
               }
             : null,
         }),

@@ -45,6 +45,7 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
   const [autor, setAutor] = useState(encontro.autor || '')
   const [problema, setProblema] = useState(encontro.problema_governanca || '')
   const [conceitosChave, setConceitosChave] = useState(encontro.conceitos_chave || '')
+  const [trechoEmEstudo, setTrechoEmEstudo] = useState(encontro.trecho_em_estudo || '')
   const [salvando, setSalvando] = useState(false)
 
   async function salvar(e) {
@@ -58,6 +59,7 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
         autor,
         problema_governanca: problema,
         conceitos_chave: conceitosChave || null,
+        trecho_em_estudo: trechoEmEstudo || null,
       })
       .eq('id', encontro.id)
       .select()
@@ -94,11 +96,21 @@ function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
         />
       </div>
       <div>
-        <label className="block text-stone-700 mb-2 font-medium">Problema de governança</label>
+        <label className="block text-stone-700 mb-2 font-medium">Pergunta central</label>
         <CampoAutoAjustavel
           value={problema}
           onChange={(e) => setProblema(e.target.value)}
           minRows={4}
+          className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+        />
+      </div>
+      <div>
+        <label className="block text-stone-700 mb-2 font-medium">
+          Trecho em estudo <span className="text-stone-400 font-normal">(opcional, ex: "Capítulos 1 a 3")</span>
+        </label>
+        <input
+          value={trechoEmEstudo}
+          onChange={(e) => setTrechoEmEstudo(e.target.value)}
           className="w-full text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
         />
       </div>
