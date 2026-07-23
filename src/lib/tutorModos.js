@@ -19,6 +19,16 @@ export const MODOS = [
     titulo: 'Critique meu raciocínio',
     descricao: 'Escreva uma ideia sua e receba contrapontos para fortalecer o pensamento.',
   },
+  {
+    chave: 'verificar',
+    titulo: 'Vamos verificar esta resposta',
+    descricao: 'Cole uma resposta que você recebeu de qualquer IA e receba um exame crítico dela.',
+  },
+  {
+    chave: 'conselho',
+    titulo: 'Perguntas para o Conselho',
+    descricao: 'Descreva uma situação e receba as perguntas que um Conselho deveria fazer antes de decidir.',
+  },
 ]
 
 export function rotuloModo(chave) {

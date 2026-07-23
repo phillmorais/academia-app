@@ -233,6 +233,21 @@ export default function Tutor() {
       rotulo: 'Quero testar uma ideia minha',
       aoTocar: () => iniciarConversa('criticar', encontroAtual, 'Quero testar um raciocínio meu com você.'),
     },
+    {
+      chave: 'verificar',
+      rotulo: 'Vamos verificar esta resposta',
+      aoTocar: () => iniciarConversa('verificar', encontroAtual, 'Quero verificar uma resposta que recebi de outra IA.'),
+    },
+    {
+      chave: 'conselho',
+      rotulo: 'Perguntas para o Conselho',
+      aoTocar: () =>
+        iniciarConversa(
+          'conselho',
+          encontroAtual,
+          'Quero saber que perguntas um Conselho deveria fazer sobre uma situação que vou descrever.'
+        ),
+    },
   ]
 
   return (
@@ -309,27 +324,32 @@ export default function Tutor() {
         <div ref={fimDaLista} />
       </div>
 
-      <form onSubmit={enviarMensagem} className="p-4 border-t border-stone-200 flex gap-3 items-end">
-        <CampoAutoAjustavel
-          value={entrada}
-          onChange={(e) => setEntrada(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              enviarMensagem(e)
-            }
-          }}
-          placeholder="Escreva aqui..."
-          minRows={1}
-          className="flex-1 text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20 max-h-40 overflow-y-auto"
-        />
-        <button
-          type="submit"
-          disabled={enviando || !entrada.trim()}
-          className="bg-stone-900 text-white px-5 py-3 rounded-xl font-semibold disabled:opacity-50"
-        >
-          Enviar
-        </button>
+      <form onSubmit={enviarMensagem} className="p-4 border-t border-stone-200 flex flex-col gap-2">
+        <div className="flex gap-3 items-end">
+          <CampoAutoAjustavel
+            value={entrada}
+            onChange={(e) => setEntrada(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                enviarMensagem(e)
+              }
+            }}
+            placeholder="Escreva aqui..."
+            minRows={1}
+            className="flex-1 text-lg px-4 py-3 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20 max-h-40 overflow-y-auto"
+          />
+          <button
+            type="submit"
+            disabled={enviando || !entrada.trim()}
+            className="bg-stone-900 text-white px-5 py-3 rounded-xl font-semibold disabled:opacity-50"
+          >
+            Enviar
+          </button>
+        </div>
+        <p className="text-stone-400 text-xs px-1">
+          Caso sensível? Anonimize antes de perguntar — não insira informação confidencial sem autorização e proteção adequadas.
+        </p>
       </form>
     </div>
   )
