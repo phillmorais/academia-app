@@ -18,7 +18,7 @@ function CardConversa({ conversa, mostrarAutor }) {
       <div className="flex items-center justify-between gap-2 mb-1">
         <p className="text-stone-400 text-sm">{formatarQuando(conversa.criado_em)}</p>
         {conversa.compartilhada && (
-          <span className="text-amber-800 text-xs font-semibold uppercase tracking-wide">
+          <span className="inline-block text-amber-800 bg-amber-50 text-xs font-semibold uppercase tracking-wide rounded-full px-3 py-1">
             Compartilhada
           </span>
         )}

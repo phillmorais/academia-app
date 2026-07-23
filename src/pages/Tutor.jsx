@@ -228,14 +228,14 @@ export default function Tutor() {
     .map((c) => c.trim())
     .filter(Boolean)
 
-  const sugestoes = [
-    ...conceitosSugeridos.map((conceito) => ({
-      chave: `conceito-${conceito}`,
-      rotulo: conceito,
-      aoTocar: () => iniciarConversa('explicar', encontroAtual, `Me explique com calma o conceito: ${conceito}`),
-    })),
-    ...(conceitosSugeridos.length === 0
-      ? [
+  const sugestoesConceito =
+    conceitosSugeridos.length > 0
+      ? conceitosSugeridos.map((conceito) => ({
+          chave: `conceito-${conceito}`,
+          rotulo: conceito,
+          aoTocar: () => iniciarConversa('explicar', encontroAtual, `Me explique com calma o conceito: ${conceito}`),
+        }))
+      : [
           {
             chave: 'explicar',
             rotulo: 'Me explique um conceito com calma',
@@ -243,7 +243,8 @@ export default function Tutor() {
               iniciarConversa('explicar', encontroAtual, 'Quero entender melhor um conceito do encontro atual.'),
           },
         ]
-      : []),
+
+  const sugestoesModo = [
     {
       chave: 'perguntar',
       rotulo: 'Me faça perguntas sobre o problema deste mês',
@@ -303,11 +304,30 @@ export default function Tutor() {
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
         {mensagens.length === 0 && (
           <div>
-            <p className="text-stone-500 leading-relaxed mb-3">
+            <p className="text-stone-500 leading-relaxed mb-4">
               Pergunte o que quiser sobre o encontro atual, ou toque numa sugestão:
             </p>
+
+            <p className="text-stone-400 text-xs font-semibold uppercase tracking-wide mb-2">
+              Sobre este encontro
+            </p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {sugestoesConceito.map((s) => (
+                <button
+                  key={s.chave}
+                  onClick={s.aoTocar}
+                  className="bg-white border border-stone-300 rounded-full px-4 py-2 text-stone-700 font-medium active:bg-stone-50"
+                >
+                  {s.rotulo}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-stone-400 text-xs font-semibold uppercase tracking-wide mb-2">
+              Outras formas de conversar
+            </p>
             <div className="flex flex-wrap gap-2">
-              {sugestoes.map((s) => (
+              {sugestoesModo.map((s) => (
                 <button
                   key={s.chave}
                   onClick={s.aoTocar}

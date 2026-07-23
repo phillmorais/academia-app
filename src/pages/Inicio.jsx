@@ -37,16 +37,11 @@ const ATALHOS = [
     titulo: 'Ler o registro de um encontro',
     descricao: 'A memória destilada do que já foi conversado.',
   },
-  {
-    para: '/conselho',
-    titulo: 'Perguntas para o Conselho',
-    descricao: 'O repertório crescente de perguntas para levar à administração.',
-  },
-  {
-    para: '/memorial',
-    titulo: 'Ler o Memorial da Academia',
-    descricao: 'O documento oficial com o método e os princípios do grupo.',
-  },
+]
+
+const REFERENCIAS = [
+  { para: '/conselho', titulo: 'Perguntas para o Conselho' },
+  { para: '/memorial', titulo: 'Memorial da Academia' },
 ]
 
 function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {
@@ -323,6 +318,24 @@ export default function Inicio() {
                 <p className="text-stone-500 leading-snug">{atalho.descricao}</p>
               </div>
               <span className="text-stone-300 text-2xl shrink-0">→</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-9">
+        <h2 className="text-sm font-semibold text-stone-400 uppercase tracking-wide mb-3 px-1">
+          Referência
+        </h2>
+        <div className="bg-white border border-stone-200 rounded-2xl divide-y divide-stone-100">
+          {REFERENCIAS.map((r) => (
+            <Link
+              key={r.para}
+              to={r.para}
+              className="flex items-center justify-between gap-3 p-4 active:bg-stone-50"
+            >
+              <span className="text-stone-700 font-medium">{r.titulo}</span>
+              <span className="text-stone-300 text-xl shrink-0">→</span>
             </Link>
           ))}
         </div>
