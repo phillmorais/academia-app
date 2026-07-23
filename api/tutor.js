@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
 const LIMITE_DIARIO = 40
-const TAMANHO_MAXIMO_MENSAGEM = 4000
 const MODELO = 'claude-sonnet-5'
 
 const INSTRUCAO_VIESES =
@@ -248,12 +247,6 @@ export default async function handler(req, res) {
 
   if (!Array.isArray(mensagens) || mensagens.length === 0) {
     res.status(400).json({ erro: 'Nenhuma mensagem recebida.' })
-    return
-  }
-
-  const tamanhoTotal = mensagens.reduce((soma, m) => soma + (m.texto?.length || 0), 0)
-  if (tamanhoTotal > TAMANHO_MAXIMO_MENSAGEM) {
-    res.status(400).json({ erro: 'Mensagem muito longa. Tente escrever de forma mais breve.' })
     return
   }
 
