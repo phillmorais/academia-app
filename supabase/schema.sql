@@ -246,18 +246,18 @@ insert into encontros (numero, titulo, livro, autor, problema_governanca, trecho
 -- ============================================================
 
 insert into prompts (titulo, categoria, texto, contexto_uso) values
-('Interrogar premissas', 'Análise crítica',
+('Interrogar premissas', 'Construir análises e cenários',
  'Aja como um analista crítico e cético. Vou apresentar uma decisão que estamos considerando. Liste as premissas implícitas por trás dela e, para cada uma, aponte o que precisaria ser verdade para que ela se sustente: [decisão]',
  'Use antes de fechar uma decisão importante.'),
-('Separar fato de opinião', 'Análise crítica',
+('Separar fato de opinião', 'Pesquisar e verificar',
  'Vou colar um relatório. Separe, item a item, o que é fato verificável do que é opinião, interpretação ou projeção. Marque cada afirmação com uma dessas categorias: [relatório]',
  'Use ao ler relatórios e pareceres.'),
-('Red team da estratégia', 'Decisão',
+('Red team da estratégia', 'Usar IA em governança',
  'Aja como um advogado do diabo experiente. Vou apresentar uma estratégia. Aponte as três formas mais prováveis de ela falhar e que sinais indicariam, com antecedência, que cada uma está acontecendo: [estratégia]',
  'Use para testar uma proposta antes de aprová-la.'),
-('Mapear stakeholders e vieses', 'Decisão',
+('Mapear stakeholders e vieses', 'Usar IA em governança',
  'Para a decisão a seguir, liste os principais interessados afetados, o interesse de cada um, e os vieses que podem estar influenciando a nossa própria análise: [decisão]',
  'Use quando a decisão afeta muitos grupos.'),
-('Construir cenários', 'Prospecção',
+('Construir cenários', 'Construir análises e cenários',
  'Construa três cenários (otimista, mais provável e pessimista) para a questão a seguir num horizonte de cinco anos. Para cada um, indique os principais fatores que o separam dos outros: [questão]',
  'Use em discussões de longo prazo.');

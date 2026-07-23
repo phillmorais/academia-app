@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
+import { COMPETENCIAS } from '../lib/competencias'
 
 function CartaoSugestao({ sugestao, encontroId, onAlterar }) {
   const [adicionado, setAdicionado] = useState(false)
@@ -27,11 +28,17 @@ function CartaoSugestao({ sugestao, encontroId, onAlterar }) {
         onChange={(e) => onAlterar({ ...sugestao, titulo: e.target.value })}
         className="w-full text-lg font-semibold text-stone-800 mb-2 border-b border-stone-200 pb-1 focus:outline-none focus:border-amber-700"
       />
-      <input
+      <select
         value={sugestao.categoria}
         onChange={(e) => onAlterar({ ...sugestao, categoria: e.target.value })}
         className="w-full text-sm text-stone-500 mb-3 border-b border-stone-200 pb-1 focus:outline-none focus:border-amber-700"
-      />
+      >
+        {COMPETENCIAS.map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
       <CampoAutoAjustavel
         value={sugestao.texto}
         onChange={(e) => onAlterar({ ...sugestao, texto: e.target.value })}

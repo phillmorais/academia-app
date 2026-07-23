@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { COMPETENCIAS } from '../src/lib/competencias.js'
 
 const MODELO = 'claude-sonnet-5'
 const QUANTIDADE_SUGESTOES = 4
@@ -9,18 +10,20 @@ function montarPrompt(encontro, quantidade) {
 Gere exatamente ${quantidade} sugestões de prompts prontos para o encontro abaixo:
 - Livro: ${encontro.livro || 'não definido'}
 - Autor: ${encontro.autor || 'não definido'}
-- Problema de governança em pauta: ${encontro.problema_governanca || 'não definido'}
+- Pergunta central em pauta: ${encontro.problema_governanca || 'não definida'}
 
 Cada prompt deve seguir a estrutura de um bom pedido à IA:
 - Um papel claro que a IA deve assumir (ex: "Aja como um...")
-- Um pedido claro, ligado ao problema de governança acima
+- Um pedido claro, ligado à pergunta central acima
 - Um placeholder entre colchetes (ex: [decisão], [relatório], [estratégia]) onde a pessoa vai colar o material dela
 - Limites claros sobre o que a IA não deve fazer
 
 Quem vai usar esses prompts são conselheiras e executivas experientes, mas sem intimidade com IA — evite jargão técnico no texto do prompt.
 
+Cada prompt deve ser classificado em exatamente uma destas competências (a Academia organiza os prompts por competência transferível entre ferramentas, não por tipo de análise): ${COMPETENCIAS.map((c) => `"${c}"`).join(', ')}.
+
 Responda APENAS com um array JSON válido, sem nenhum texto antes ou depois, neste formato exato:
-[{"titulo": "...", "categoria": "Análise crítica ou Decisão ou Prospecção", "texto": "o prompt completo", "contexto_uso": "uma frase curta dizendo quando usar"}]`
+[{"titulo": "...", "categoria": "uma das competências listadas acima, exatamente como escrita", "texto": "o prompt completo", "contexto_uso": "uma frase curta dizendo quando usar"}]`
 }
 
 function extrairJson(texto) {

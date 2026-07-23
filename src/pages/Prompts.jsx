@@ -44,6 +44,9 @@ function CardPrompt({ prompt }) {
 
   return (
     <div className="bg-white border border-stone-200 rounded-2xl p-5">
+      <span className="inline-block text-amber-800 bg-amber-50 text-xs font-semibold uppercase tracking-wide rounded-full px-3 py-1 mb-2">
+        {prompt.categoria}
+      </span>
       <h3 className="text-xl font-semibold text-stone-800 mb-1">{prompt.titulo}</h3>
       {prompt.contexto_uso && (
         <p className="text-stone-500 mb-3 leading-snug">{prompt.contexto_uso}</p>
