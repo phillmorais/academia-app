@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import BotaoCopiarContexto from '../components/BotaoCopiarContexto'
 
 function GrupoPrompts({ titulo, lista }) {
   const categorias = [...new Set(lista.map((p) => p.categoria))]
@@ -120,6 +121,8 @@ export default function Prompts() {
       <p className="text-stone-500 mb-5 px-1">
         Copie e cole em qualquer IA que você usa
       </p>
+
+      <BotaoCopiarContexto className="w-full text-center bg-white border border-stone-300 rounded-xl py-3.5 font-semibold text-stone-700 active:bg-stone-50 mb-6" />
 
       {encontroFiltro && (
         <Link to="/prompts" className="text-amber-800 font-medium mb-5 inline-block px-1">

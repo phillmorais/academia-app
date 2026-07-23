@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import Markdown from '../components/Markdown'
+import BotaoCopiarContexto from '../components/BotaoCopiarContexto'
 
 export default function EncontroDetalhe() {
   const { id } = useParams()
@@ -53,6 +54,7 @@ export default function EncontroDetalhe() {
       )}
 
       <div className="flex flex-col gap-3 mb-8">
+        <BotaoCopiarContexto className="text-center bg-white border border-stone-300 rounded-xl py-3.5 font-semibold text-stone-700 active:bg-stone-50" />
         <Link
           to={`/prompts?encontro=${encontro.id}`}
           className="text-center bg-white border border-stone-300 rounded-xl py-3.5 font-semibold text-stone-700 active:bg-stone-50"

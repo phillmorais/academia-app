@@ -18,8 +18,14 @@ O Tutor (`/api/tutor.js`) só funciona rodando via `vercel dev` (ele lê as vari
 ### 1. Criar o projeto no Supabase
 
 1. Crie uma conta e um projeto em [supabase.com](https://supabase.com).
-2. Vá em **SQL Editor**, cole o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e rode. Isso cria as tabelas, as políticas de segurança (RLS) e o conteúdo semente (os 6 primeiros encontros e 5 prompts).
-3. Se o projeto já existia antes da tela de histórico do Tutor, rode também [`supabase/migration_002_historico_tutor.sql`](supabase/migration_002_historico_tutor.sql) — cria as tabelas `tutor_conversas` e `tutor_mensagens` (projetos novos já recebem isso direto do `schema.sql`).
+2. Vá em **SQL Editor**, cole o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e rode. Isso cria as tabelas, as políticas de segurança (RLS) e o conteúdo semente (os 9 encontros + 1 leitura complementar do Memorial 2.0, e 5 prompts).
+3. Se o projeto já existia antes de alguma dessas migrations, rode os arquivos abaixo, na ordem, no SQL Editor (projetos novos já recebem tudo isso direto do `schema.sql`):
+   - [`supabase/migration_002_historico_tutor.sql`](supabase/migration_002_historico_tutor.sql) — tabelas `tutor_conversas` e `tutor_mensagens`.
+   - [`supabase/migration_003_conceitos_chave.sql`](supabase/migration_003_conceitos_chave.sql) — coluna `conceitos_chave` em `encontros`.
+   - [`supabase/migration_004_memorial_encontros.sql`](supabase/migration_004_memorial_encontros.sql) — colunas `ciclo`, `trecho_em_estudo`, `complementar`, renomeia status `'proximo'` para `'futuro'`, e atualiza a bibliografia para os 4 ciclos do Memorial 2.0.
+   - [`supabase/migration_005_prompts_competencias.sql`](supabase/migration_005_prompts_competencias.sql) — recategoriza os prompts pelas 6 competências do Memorial.
+   - [`supabase/migration_006_memorial.sql`](supabase/migration_006_memorial.sql) — tabela `memorial` (o documento oficial dentro do app).
+   - [`supabase/migration_007_perguntas_conselho.sql`](supabase/migration_007_perguntas_conselho.sql) — tabela `perguntas_conselho` (repertório de perguntas para Conselhos).
 4. Em **Project Settings > API**, copie a **Project URL** e a **anon public key** (também chamada de "Publishable key" em painéis mais novos). Você vai usar os dois valores duas vezes: nas variáveis `VITE_SUPABASE_*` (frontend) e `SUPABASE_*` (servidor, na Vercel).
 
 ### 2. Criar as 10 contas dos participantes
@@ -42,19 +48,25 @@ As pessoas não se cadastram — a organizadora cria as contas prontas:
 
 ### 4. Ajustar o encontro "de hoje"
 
-Na tabela `encontros` (Table Editor do Supabase), o encontro com `status = 'atual'` aparece destacado na tela inicial e é o contexto usado pelo Tutor. Antes de cada encontro presencial, mude o `status` do encontro anterior para `'concluido'` e o do próximo para `'atual'`.
+Na tabela `encontros` (Table Editor do Supabase), o encontro com `status = 'atual'` aparece destacado na tela inicial e é o contexto usado pelo Tutor. Antes de cada encontro presencial, mude o `status` do encontro anterior para `'concluido'` e o do próximo para `'atual'`. O Tutor usa esse mesmo campo `status` (`'concluido'` / `'atual'` / `'futuro'`) para saber quais livros já pode citar livremente e quais ainda não foram lidos pelo grupo — ver "Regra cumulativa das leituras" abaixo.
 
 ## Estrutura
 
-- `src/pages` — as telas (Login, Início, Encontros, Detalhe do Encontro, Prompts, Registro, Tutor e histórico do Tutor)
+- `src/pages` — as telas (Login, Início, Encontros, Detalhe do Encontro, Prompts, Registro, Tutor e histórico do Tutor, Conta, Memorial, Perguntas para o Conselho)
+- `src/lib/encontros.js` — escolha do encontro em destaque por data e montagem do repertório (livros concluídos/futuros) usados pelo Tutor e pelo botão "Copiar contexto"
+- `src/lib/competencias.js` — as 6 competências que organizam a Biblioteca de Prompts
 - `src/context/AuthContext.jsx` — sessão e perfil do usuário
 - `src/lib/supabaseClient.js` — cliente Supabase do frontend
 - `api/tutor.js` — única parte do sistema que fala com a API do Claude; valida a sessão do Supabase antes de responder
 - `supabase/schema.sql` — tabelas, RLS e conteúdo semente
 
+## Regra cumulativa das leituras
+
+Seguindo o Memorial 2.0, o Tutor só pode fundamentar respostas no livro atual, nos livros já concluídos pelo grupo (`status = 'concluido'`) e na experiência da própria participante — nunca em autores ainda não lidos (`status = 'futuro'`), que só podem ser citados como referência futura, numa frase. Essa separação é calculada em `api/tutor.js` a partir do `status` de cada encontro; leituras marcadas como `complementar = true` (ex: *2041*) ficam fora da trilha numerada e da regra cumulativa.
+
 ## Conversas do Tutor
 
-As conversas com o Tutor ficam salvas em `tutor_conversas` e `tutor_mensagens`, por padrão visíveis só para quem conversou. A pessoa pode marcar uma conversa como "compartilhar com o grupo" (campo `compartilhada`); a partir daí, ela aparece na aba "Do grupo" do histórico do Tutor para todo mundo, e o próprio Tutor passa a poder citar essas reflexões (sem citar nomes de forma indiscreta) quando conversa com outra pessoa sobre o mesmo encontro.
+As conversas com o Tutor ficam salvas em `tutor_conversas` e `tutor_mensagens`, por padrão visíveis só para quem conversou. A pessoa pode marcar uma conversa como "compartilhar com o grupo" (campo `compartilhada`); a partir daí, ela aparece na aba "Do grupo" do histórico do Tutor para todo mundo, e o próprio Tutor passa a poder citar essas reflexões (sem citar nomes de forma indiscreta) quando conversa com outra pessoa sobre o mesmo encontro. Os modos disponíveis são `livre`, `explicar`, `perguntar`, `criticar`, `verificar` (examinar uma resposta recebida de outra IA) e `conselho` (perguntas para levar a um Conselho).
 
 ## Fora do escopo desta versão
 

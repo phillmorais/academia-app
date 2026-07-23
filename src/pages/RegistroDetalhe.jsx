@@ -76,11 +76,22 @@ export default function RegistroDetalhe() {
 
       {editando ? (
         <div className="flex flex-col gap-4">
+          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-stone-600 leading-relaxed">
+            <p className="font-medium text-stone-700 mb-2">O registro deve trazer, quando possível:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Ideias centrais</li>
+              <li>Competência de IA praticada</li>
+              <li>Principais riscos e limitações observados</li>
+              <li>Aplicações à governança</li>
+              <li>Perguntas para Conselhos</li>
+              <li>Dúvidas que permaneceram abertas</li>
+            </ul>
+          </div>
           <CampoAutoAjustavel
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             minRows={14}
-            placeholder="Cole aqui o texto destilado do encontro..."
+            placeholder="Cole aqui o texto destilado do encontro, organizado pelas seções acima..."
             className="w-full text-lg px-4 py-3.5 rounded-xl border border-stone-300 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20 leading-relaxed"
           />
           <div className="flex gap-3">

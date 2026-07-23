@@ -14,6 +14,8 @@ import Tutor from './pages/Tutor'
 import TutorHistorico from './pages/TutorHistorico'
 import TutorConversa from './pages/TutorConversa'
 import Conta from './pages/Conta'
+import Memorial from './pages/Memorial'
+import Conselho from './pages/Conselho'
 
 function App() {
   return (
@@ -34,6 +36,8 @@ function App() {
             <Route path="/tutor/historico" element={<TutorHistorico />} />
             <Route path="/tutor/historico/:id" element={<TutorConversa />} />
             <Route path="/conta" element={<Conta />} />
+            <Route path="/memorial" element={<Memorial />} />
+            <Route path="/conselho" element={<Conselho />} />
           </Route>
         </Routes>
       </AuthProvider>

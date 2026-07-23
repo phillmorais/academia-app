@@ -60,7 +60,7 @@ create table tutor_conversas (
   id uuid primary key default gen_random_uuid(),
   usuario_id uuid not null references perfis(id) on delete cascade,
   encontro_id uuid references encontros(id) on delete set null,
-  modo text not null, -- 'explicar' | 'perguntar' | 'criticar'
+  modo text not null, -- 'livre' | 'explicar' | 'perguntar' | 'criticar' | 'verificar' | 'conselho'
   compartilhada boolean not null default false,
   criado_em timestamptz default now()
 );
@@ -70,6 +70,24 @@ create table tutor_mensagens (
   conversa_id uuid not null references tutor_conversas(id) on delete cascade,
   papel text not null, -- 'usuario' | 'tutor'
   texto text not null,
+  criado_em timestamptz default now()
+);
+
+-- Memorial da Academia — fonte oficial de método, somente leitura para participantes
+create table memorial (
+  id uuid primary key default gen_random_uuid(),
+  versao text not null,
+  conteudo text,
+  atualizado_em timestamptz default now()
+);
+
+-- Repertório crescente de perguntas para Conselhos, alimentado pelo grupo e pelo Tutor
+create table perguntas_conselho (
+  id uuid primary key default gen_random_uuid(),
+  pergunta text not null,
+  tema text,
+  encontro_origem uuid references encontros(id) on delete set null,
+  criado_por uuid references perfis(id),
   criado_em timestamptz default now()
 );
 
@@ -104,6 +122,8 @@ alter table registros enable row level security;
 alter table tutor_uso enable row level security;
 alter table tutor_conversas enable row level security;
 alter table tutor_mensagens enable row level security;
+alter table memorial enable row level security;
+alter table perguntas_conselho enable row level security;
 
 -- perfis: todo autenticado pode ler nomes; cada um só edita o próprio perfil
 create policy "perfis_select_autenticados" on perfis
@@ -185,6 +205,25 @@ create policy "tutor_mensagens_insert" on tutor_mensagens
     )
   );
 
+-- memorial: leitura para todos autenticados; escrita só para a organizadora
+create policy "memorial_select_autenticados" on memorial
+  for select to authenticated using (true);
+
+create policy "memorial_escrita_organizadora" on memorial
+  for all to authenticated
+  using (exists (select 1 from perfis where id = auth.uid() and papel = 'organizadora'))
+  with check (exists (select 1 from perfis where id = auth.uid() and papel = 'organizadora'));
+
+-- perguntas_conselho: leitura e escrita (sem exclusão) para todo autenticado
+create policy "perguntas_conselho_select_autenticados" on perguntas_conselho
+  for select to authenticated using (true);
+
+create policy "perguntas_conselho_escrita_autenticados" on perguntas_conselho
+  for insert to authenticated with check (true);
+
+create policy "perguntas_conselho_update_autenticados" on perguntas_conselho
+  for update to authenticated using (true);
+
 -- ============================================================
 -- CONTEÚDO SEMENTE — ENCONTROS
 -- ============================================================
@@ -261,3 +300,10 @@ insert into prompts (titulo, categoria, texto, contexto_uso) values
 ('Construir cenários', 'Construir análises e cenários',
  'Construa três cenários (otimista, mais provável e pessimista) para a questão a seguir num horizonte de cinco anos. Para cada um, indique os principais fatores que o separam dos outros: [questão]',
  'Use em discussões de longo prazo.');
+
+-- ============================================================
+-- CONTEÚDO SEMENTE — MEMORIAL
+-- ============================================================
+-- Conteúdo em branco de propósito — a organizadora cola o texto oficial pela tela do app.
+
+insert into memorial (versao, conteudo) values ('2.0', null);

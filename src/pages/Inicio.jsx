@@ -37,6 +37,16 @@ const ATALHOS = [
     titulo: 'Ler o registro de um encontro',
     descricao: 'A memória destilada do que já foi conversado.',
   },
+  {
+    para: '/conselho',
+    titulo: 'Perguntas para o Conselho',
+    descricao: 'O repertório crescente de perguntas para levar à administração.',
+  },
+  {
+    para: '/memorial',
+    titulo: 'Ler o Memorial da Academia',
+    descricao: 'O documento oficial com o método e os princípios do grupo.',
+  },
 ]
 
 function FormularioProximoEncontro({ encontro, aoCancelar, aoSalvar }) {

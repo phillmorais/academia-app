@@ -8,6 +8,26 @@ import MensagemMarkdown from '../components/MensagemMarkdown'
 import BotaoCopiar from '../components/BotaoCopiar'
 import CampoAutoAjustavel from '../components/CampoAutoAjustavel'
 
+function BotaoSalvarConselho({ texto, encontroId, usuarioId }) {
+  const [estado, setEstado] = useState('parado') // 'parado' | 'salvando' | 'salvo'
+
+  async function salvar() {
+    setEstado('salvando')
+    const { error } = await supabase.from('perguntas_conselho').insert({
+      pergunta: texto,
+      encontro_origem: encontroId ?? null,
+      criado_por: usuarioId,
+    })
+    setEstado(error ? 'parado' : 'salvo')
+  }
+
+  return (
+    <button onClick={salvar} disabled={estado !== 'parado'} className="text-amber-800 font-medium text-sm">
+      {estado === 'salvo' ? 'Salvo no repertório!' : estado === 'salvando' ? 'Salvando...' : 'Salvar no Repertório do Conselho'}
+    </button>
+  )
+}
+
 export default function Tutor() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
@@ -313,8 +333,15 @@ export default function Tutor() {
             >
               {m.papel === 'tutor' ? <MensagemMarkdown>{m.texto}</MensagemMarkdown> : m.texto}
               {m.papel === 'tutor' && (
-                <div className="mt-2 pt-2 border-t border-stone-100">
+                <div className="mt-2 pt-2 border-t border-stone-100 flex flex-wrap items-center gap-4">
                   <BotaoCopiar texto={m.texto} className="text-amber-800" />
+                  {modo === 'conselho' && (
+                    <BotaoSalvarConselho
+                      texto={m.texto}
+                      encontroId={encontroAtual?.id}
+                      usuarioId={usuario.id}
+                    />
+                  )}
                 </div>
               )}
             </div>
